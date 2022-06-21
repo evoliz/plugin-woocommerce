@@ -1,0 +1,19 @@
+{
+  "name": "evoliz/evz-plugin",
+  "type": "plugin",
+  "description": "Evoliz plugin for Woocommerce",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Evoliz",
+      "homepage": "https://www.evoliz.com/"
+    }
+  ],
+  "config": {
+    "sort-packages": true
+  },
+  "require": {
+    "evoliz/evoliz-php": "^0.2.0"
+  }
+}
