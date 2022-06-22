@@ -1,13 +1,19 @@
 {
-  "name": "evoliz/evz-plugin",
+  "name": "evoliz/plugin-woocommerce",
   "type": "plugin",
   "description": "Evoliz plugin for Woocommerce",
+  "keywords": [
+    "evoliz",
+    "invoicing",
+    "woocommerce"
+  ],
+  "homepage": "https://evoliz.com/",
   "minimum-stability": "stable",
-  "license": "proprietary",
+  "license": "MIT",
   "authors": [
     {
-      "name": "Evoliz",
-      "homepage": "https://www.evoliz.com/"
+      "name": "Evoliz and contributors",
+      "homepage": "https://github.com/evoliz/plugin-woocommerce/contributors"
     }
   ],
   "config": {
