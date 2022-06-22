@@ -34,7 +34,8 @@ abstract class EvolizSettings
             if (isset($_GET["tab"])) {
                 $activeTab = $_GET["tab"];
             }
-            // @Todo : implements checkUpdate();
+
+            checkUpdate()
             ?>
 
             <h2 class="nav-tab-wrapper">
