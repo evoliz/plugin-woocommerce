@@ -62,6 +62,7 @@ abstract class Webhooks
      */
     public static function createNewSaleOrder(int $orderId, object $order)
     {
+        clearLog();
         EvolizSaleOrder::create(self::$config, $order);
     }
 

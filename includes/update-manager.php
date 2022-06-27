@@ -33,7 +33,7 @@ function sendUpdateNotification()
     $latestVersion = getLatestReleaseVersion();
     $downloadUrl = getLatestRelease()->zipball_url;
 
-    writeLog("[ Update Manager ] A new version of the Evoliz module is available ($latestVersion).");
+    writeLog("[ Update Manager ] A new version of the Evoliz module is available ($latestVersion).\n");
     echo "<div class='notice notice-warning is-dismissible'>
         <p><b>Une nouvelle version du module Evoliz est disponible ($latestVersion)
         <br>
