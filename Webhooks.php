@@ -68,15 +68,18 @@ abstract class Webhooks
 
     /**
      * @param int $orderId Woocommerce order identifier
-     * @param string $previousStatus Previous status name
-     * @param string $newStatus new status name
+     * @param string $previousStatus Order previous status name
+     * @param string $newStatus Order new status name
      * @return void
      * @throws ResourceException
      */
     public static function invoiceAndPaySaleOrder(int $orderId, string $previousStatus, string $newStatus)
     {
-        if ($newStatus === "completed") {
-            EvolizSaleOrder::invoiceAndPay(self::$config, $orderId);
+        $wcOrder = wc_get_order($orderId);
+
+        if (($newStatus === 'processing' && $wcOrder->get_payment_method() === 'woocommerce_payments')
+            || ($newStatus === 'completed' && $wcOrder->get_payment_method() !== 'woocommerce_payments')) {
+            EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
         }
     }
 }

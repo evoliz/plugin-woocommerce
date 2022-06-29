@@ -20,7 +20,7 @@ abstract class EvolizSaleOrder
      */
     public static function create(Config $config, object $order)
     {
-        $orderId = (string) $order->get_id();
+        $orderId = $order->get_id();
         writeLog("[ Order : $orderId ] Creating the Sale Order from WooCommerce to Evoliz...");
 
         try {
@@ -60,14 +60,14 @@ abstract class EvolizSaleOrder
 
     /**
      * @param Config $config Configuration for API usage
-     * @param int $wcOrderId Woocommerce order identifier
+     * @param object $wcOrder Woocommerce order
      * @param bool $save Precise whether to save the invoice or to keep it as draft
      * @return void
      * @throws ResourceException|Exception
      */
-    public static function invoiceAndPay(Config $config, int $wcOrderId, bool $save = true)
+    public static function invoiceAndPay(Config $config, object $wcOrder, bool $save = true)
     {
-        $wcOrder = wc_get_order($wcOrderId);
+        $wcOrderId = $wcOrder->get_id();
 
         $saleOrderRepository = new SaleOrderRepository($config);
 
@@ -75,7 +75,7 @@ abstract class EvolizSaleOrder
 
         if (!empty($matchingSaleOrders->data)) {
             try {
-                writeLog("[ Order : $wcOrderId ] Sale Order completed. Creation of the Invoice...");
+                writeLog("[ Order : $wcOrderId ] Payment received. Creation of the Invoice...");
                 $invoice = $saleOrderRepository->invoice($matchingSaleOrders->data[0]->orderid, $save);
                 $invoiceId = $invoice->invoiceid;
                 writeLog("[ Order : $wcOrderId ] The Sale Order has been successfully invoiced ($invoiceId).");
@@ -118,7 +118,7 @@ abstract class EvolizSaleOrder
             ];
 
             if (($product->get_sale_price() !== null && $product->get_sale_price() > 0) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
-                $newItem['rebate'] = $product->get_regular_price() - $product->get_sale_price();
+                $newItem['rebate'] = ($product->get_regular_price() - $product->get_sale_price()) * $quantity;
             }
 
             if ($item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0) {
@@ -153,10 +153,9 @@ abstract class EvolizSaleOrder
                 'unit_price_vat_exclude' => $unitPrice
             ];
 
-            // @Todo : Find a way to test TVA on shipping
-//            if ($order->get_shipping_tax() > 0) {
-//                $shipping['vat_rate'] = (float) ($order->get_shipping_tax() / $order->get_shipping_total() * 100);
-//            }
+            if ($order->get_shipping_tax() > 0) {
+                $shipping['vat_rate'] = (float) ($order->get_shipping_tax() / $order->get_shipping_total() * 100);
+            }
 
             $items[] = new Item($shipping);
         }
