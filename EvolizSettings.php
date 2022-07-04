@@ -75,8 +75,6 @@ abstract class EvolizSettings
 
     public static function evolizSettingsInit()
     {
-        wp_enqueue_style('Evoliz', plugin_dir_url(__FILE__) . 'Assets/css/evoliz.css');
-
         if (!isset($_GET["tab"]))
             $tab = "configuration";
         else {
@@ -148,7 +146,7 @@ abstract class EvolizSettings
 
     public static function displayEnableVatNumber()
     {
-        echo '<label class="switch" for="wc_evz_enable_vat_number">
+        echo '<label for="wc_evz_enable_vat_number">
             <input name="wc_evz_enable_vat_number" id="wc_evz_enable_vat_number" type="checkbox"' .
             (esc_attr(get_option('wc_evz_enable_vat_number')) == "on" ? ' checked="checked"' : '') . '/>' .
             '<span class="slider round"></span>

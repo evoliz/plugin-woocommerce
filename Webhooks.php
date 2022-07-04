@@ -18,8 +18,7 @@ abstract class Webhooks
         self::$config = $config;
         add_filter('woocommerce_checkout_fields', __CLASS__ . '::addNewFieldsToCheckout');
         add_action('woocommerce_checkout_create_order', __CLASS__ . '::fillOrderMetaData');
-        add_action('woocommerce_new_order', __CLASS__ . '::createNewSaleOrder', 10, 2);
-        add_action('woocommerce_order_status_changed', __CLASS__ . '::invoiceAndPaySaleOrder', 10, 3);
+        add_action('woocommerce_order_status_changed', __CLASS__ . '::manageSaleOrder', 10, 3);
     }
 
     /**
@@ -56,30 +55,33 @@ abstract class Webhooks
 
     /**
      * @param int $orderId Woocommerce order identifier
-     * @param object $order Woocommerce order
-     * @return void
-     * @throws ResourceException
-     */
-    public static function createNewSaleOrder(int $orderId, object $order)
-    {
-        clearLog();
-        EvolizSaleOrder::create(self::$config, $order);
-    }
-
-    /**
-     * @param int $orderId Woocommerce order identifier
      * @param string $previousStatus Order previous status name
      * @param string $newStatus Order new status name
      * @return void
      * @throws ResourceException
      */
-    public static function invoiceAndPaySaleOrder(int $orderId, string $previousStatus, string $newStatus)
+    public static function manageSaleOrder(int $orderId, string $previousStatus, string $newStatus)
     {
         $wcOrder = wc_get_order($orderId);
 
-        if (($newStatus === 'processing' && $wcOrder->get_payment_method() === 'woocommerce_payments')
-            || ($newStatus === 'completed' && $wcOrder->get_payment_method() !== 'woocommerce_payments')) {
-            EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
+        switch ($newStatus) {
+            case "on-hold" :
+                EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
+                break;
+            case "processing" :
+                if ($previousStatus !== 'on-hold') {
+                    EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
+                }
+
+                if ($wcOrder->get_payment_method() !== 'cod') {
+                    EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
+                }
+                break;
+            case "completed" :
+                if (!in_array($previousStatus, ['on-hold', 'processing'])) {
+                    EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
+                }
+                EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
         }
     }
 }
