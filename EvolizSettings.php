@@ -68,7 +68,7 @@ abstract class EvolizSettings
                 ?>
             </form>
             <hr>
-            <?php echo "Version du module Evoliz : " . getPluginVersion() ?>
+            <?php echo "Version du module Evoliz : " . manageVersion()->version ?>
         </div>
         <?php
     }
@@ -164,7 +164,7 @@ abstract class EvolizSettings
     public static function displayInfos()
     {
         echo "<p>
-            Version du module Evoliz : " . getPluginVersion()
+            Version du module Evoliz : " . manageVersion()->version
                 . "<br><br>
             Nous travaillons en permanence sur le module afin de l'améliorer. Veillez à bien mettre à jour votre module à chaque fois que l'option vous est proposée.
         </p>";
