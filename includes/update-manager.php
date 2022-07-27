@@ -14,6 +14,8 @@ function manageVersion($callToGithub = false)
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
 
+//        curl_setopt($curl, CURLOPT_USERPWD, '' . ':' . '');
+
         $result = json_decode(curl_exec($curl));
 
         if ($result->tag_name !== null) {
