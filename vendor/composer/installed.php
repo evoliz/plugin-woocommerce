@@ -5,18 +5,18 @@
         'type' => 'plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '7952bb6660fb4ce00ed764bf2424c43c87b2d8ee',
+        'reference' => '8f88ba56395678ae76bcc44bd0b7c8487d3f7711',
         'name' => 'evoliz/plugin-woocommerce',
-        'dev' => false,
+        'dev' => true,
     ),
     'versions' => array(
         'evoliz/evoliz-php' => array(
-            'pretty_version' => 'v0.2.0',
-            'version' => '0.2.0.0',
+            'pretty_version' => 'v0.3.0',
+            'version' => '0.3.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../evoliz/evoliz-php',
             'aliases' => array(),
-            'reference' => '534e133f4cabbb2e3b3308d1be659e6ecc6e9e14',
+            'reference' => 'e0e93cf42704211e95da7163334f8430851f3d2e',
             'dev_requirement' => false,
         ),
         'evoliz/plugin-woocommerce' => array(
@@ -25,7 +25,7 @@
             'type' => 'plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '7952bb6660fb4ce00ed764bf2424c43c87b2d8ee',
+            'reference' => '8f88ba56395678ae76bcc44bd0b7c8487d3f7711',
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(

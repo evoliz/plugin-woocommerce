@@ -20,6 +20,6 @@
     "sort-packages": true
   },
   "require": {
-    "evoliz/evoliz-php": "^0.2.0"
+    "evoliz/evoliz-php": "^0.3.0"
   }
 }
