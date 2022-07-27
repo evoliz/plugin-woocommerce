@@ -30,7 +30,7 @@ abstract class EvolizSettings
                 add_settings_error('wporg_messages', 'wporg_message', 'Paramètres sauvegardés', 'updated');
             }
             settings_errors('wporg_messages');
-            $activeTab = "configuration";
+            $activeTab = "connection";
             if (isset($_GET["tab"])) {
                 $activeTab = $_GET["tab"];
             }
@@ -39,13 +39,13 @@ abstract class EvolizSettings
             ?>
 
             <h2 class="nav-tab-wrapper">
-                <a href="?page=evoliz_settings&tab=configuration" class="nav-tab
+                <a href="?page=evoliz_settings&tab=connection" class="nav-tab
                 <?php
-                if ($activeTab == 'configuration') {
+                if ($activeTab == 'connection') {
                     echo ' nav-tab-active';
                 }
                 ?>">
-                    Configuration
+                    Connecter WooCommerce & Evoliz
                 </a>
 
                 <a href="?page=evoliz_settings&tab=utils" class="nav-tab
@@ -54,7 +54,7 @@ abstract class EvolizSettings
                     echo ' nav-tab-active';
                 }
                 ?>">
-                    Utilitaires
+                    Informations utiles
                 </a>
             </h2>
 
@@ -63,8 +63,8 @@ abstract class EvolizSettings
                 settings_fields($activeTab . "_section");
                 do_settings_sections("evoliz_settings");
 
-                if ($activeTab == "configuration")
-                    submit_button("Enregistrer les changements", "primary", "evoliz_submit_config");
+                if ($activeTab == "connection")
+                    submit_button("Enregistrer les modifications", "primary", "evoliz_submit_config");
                 ?>
             </form>
             <hr>
@@ -76,41 +76,51 @@ abstract class EvolizSettings
     public static function evolizSettingsInit()
     {
         if (!isset($_GET["tab"]))
-            $tab = "configuration";
+            $tab = "connection";
         else {
             $tab = $_GET["tab"];
         }
 
-        if ($tab === "configuration") {
-            add_settings_section("configuration_section", "Paramètres du module Evoliz", __CLASS__ . '::displayConfigurationHeader', "evoliz_settings");
-            add_settings_field("wc_evz_company_id", "Company ID", __CLASS__ . '::displayCompanyID', "evoliz_settings", "configuration_section");
-            add_settings_field("wc_evz_public_key", "Public Key", __CLASS__ . '::displayPublicKey', "evoliz_settings", "configuration_section");
-            add_settings_field("wc_evz_secret_key", "Secret Key", __CLASS__ . '::displaySecretKey', "evoliz_settings", "configuration_section");
-            add_settings_section("eu_vat_section", "Traitement de la TVA Intracom", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
-            add_settings_field("wc_evz_enable_vat_number", "Traitement des numéros de TVA Intracom", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
-            add_settings_field("wc_evz_eu_vat_number", "Champ du numéro de TVA Intracom", __CLASS__ . '::displayVatNumberFields', "evoliz_settings", "eu_vat_section");
+        if ($tab === "connection") {
+            add_settings_section("description_section", "Description", __CLASS__ . '::displayDescriptionHeader', "evoliz_settings");
 
-            register_setting("configuration_section", "wc_evz_company_id");
-            register_setting("configuration_section", "wc_evz_public_key");
-            register_setting("configuration_section", "wc_evz_secret_key");
-            register_setting("configuration_section", "wc_evz_enable_vat_number");
-            register_setting("configuration_section", "wc_evz_eu_vat_number");
+            add_settings_section("credentials_section", "Identifiants et connexion", __CLASS__ . '::displayCredentialsHeader', "evoliz_settings");
+            add_settings_field("wc_evz_public_key", "Clé publique", __CLASS__ . '::displayPublicKey', "evoliz_settings", "credentials_section");
+            add_settings_field("wc_evz_secret_key", "Clé secrète", __CLASS__ . '::displaySecretKey', "evoliz_settings", "credentials_section");
+            add_settings_field("wc_evz_company_id", "Numéro de client", __CLASS__ . '::displayCompanyID', "evoliz_settings", "credentials_section");
+
+            add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
+            add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
+            add_settings_field("wc_evz_eu_vat_number", "Champ du numéro de TVA intracommunautaire", __CLASS__ . '::displayVatNumberFields', "evoliz_settings", "eu_vat_section");
+
+            register_setting("credentials_section", "wc_evz_public_key");
+            register_setting("credentials_section", "wc_evz_secret_key");
+            register_setting("credentials_section", "wc_evz_company_id");
+
+            register_setting("eu_vat_section", "wc_evz_enable_vat_number");
+            register_setting("eu_vat_section", "wc_evz_eu_vat_number");
 
         } elseif ($tab === 'utils') {
-            add_settings_section("infos_section", "Informations utiles", __CLASS__ . '::displayInfos', "evoliz_settings");
-            add_settings_section("logs_section", "Télécharger le fichier de log", __CLASS__ . '::displayLogs', "evoliz_settings");
-            add_settings_section("contact_section", "Contacter Evoliz", __CLASS__ . '::displayContact', "evoliz_settings");
+            add_settings_section("help_section", "Informations utiles", __CLASS__ . '::displayHelp', "evoliz_settings");
+            add_settings_section("logs_section", "Fichier de log", __CLASS__ . '::displayLogs', "evoliz_settings");
         }
     }
 
-    public static function displayConfigurationHeader()
+    public static function displayDescriptionHeader()
     {
-        echo "<b>Configuration du module :</b>
-        <br/>- Le <b>Company ID</b>, la <b>Public Key</b> ainsi que la <b>Secret Key</b> se trouvent sur <a href='#' target='_blank'>votre page profil Evoliz</a>.
-        <br/>- <b>Synchronisation des produits</b> : vos produits seront mis à jour dans Evoliz (nom, prix, taxe, description, quantité, ...) dès lors qu'ils seront commandés.
-        <br/>- <b>Synchronisation des nouveaux clients</b> : les clients qui passent une commande seront créés dans Evoliz et identifiés grâce à leur nom de société (professionnel) ou leur nom.
-        <br/>- <b>Synchronisation des nouveaux contacts clients</b> : les contacts clients associés aux clients seront créés dans Evoliz et identifiés grâce à leur adresse email.
-        <br/>- <b>Synchronisation des ventes</b> : les commandes passées à l'état \"En cours\" généreront des commandes, et les commandes passées à l'état \"Terminée\" généreront la facture et le paiement correspondant dans Evoliz.";
+        echo "La connexion du module Evoliz enrichit votre expérience WooCommerce. A compter de l’installation du plugin, bénéficiez de :
+        <br/><b>La synchronisation des nouveaux clients : </b>les clients qui effectuent une commande sont créés dans Evoliz en temps réel. Grâce aux champs [Société/Nom] et/ou [Nom du contact], nous pouvons analyser si le client est existant dans Evoliz, et ce, afin de ne pas créer de doublon.
+        <br/><b>La synchronisation des nouveaux contacts clients : </b>les contacts clients associés au client sont également créés dans Evoliz. Là aussi, les champs [Email] et [ID du client associé] nous permettent de  détecter les contacts clients existants afin de ne pas créer de doublon.
+        <br/><b>La synchronisation des opérations de ventes : </b>
+        <br/>- toute <b>commande à l’état « en cours »</b> génère la création d’un bon de commande dans Evoliz
+        <br/>- toute <b>commande à l’état « terminée »</b> génère la création d’une facture dans Evoliz ainsi que le paiement qu’il lui est associé
+        <br/><b>Bon à savoir : </b>nous avons fait le choix de NE PAS synchroniser tout l'historique WooCommerce (clients, contacts client…). Seules les nouvelles commandes généreront les différentes synchronisations présentées ci-dessus.";
+    }
+
+    public static function displayCredentialsHeader()
+    {
+        echo "Pour connecter Evoliz à WooCommerce, vous aurez besoin de renseigner les identifiants de votre clé API. Rendez-vous dans votre compte Evoliz pour <a href='https://www.evoliz.com/aide/applications/624-evoliz-comment-creer-cle-api.html' target='_blank'>créer votre clé API et/ou récupérer vos données de connexion.</a>
+        <br/>De plus, vous devrez renseigner le numéro client de votre compte Evoliz. Pour le retrouver, vous devez vous connecter à ce dernier puis cliquer sur le point d'interrogation (coin supérieur droit) et récupérer la première partie du numéro de client affiché.";
     }
 
     public static function displayCompanyID()
@@ -139,9 +149,9 @@ abstract class EvolizSettings
 
     public static function displayEuVatHeader()
     {
-        echo "Si vos clients sont soumis à la TVA Intracom veuillez activer le tritement de celle-ci ci dessous.
-        <br>Par ailleurs, vous avez peut-être déjà ajouté le champ 'Numéro de TVA Intracom' à l'aide d'un plugin.
-        <br>Si c'est le cas, veuillez fournir le 'meta name' (et non le label) du champ ci-dessous. Sinon, laissez le champ vide.";
+        echo "Dans le cas où vous facturez des clients de type professionnel (entreprise ou administration publique), il est obligatoire de renseigner le numéro de TVA Intracommunautaire.
+        <br>Si tout ou partie de vos clients sont soumis à la TVA Intracommunautaire, l’activation de l’option du \"Traitement de la TVA intracommunautaire\" est nécessaire.
+        <br><b>Bon à savoir : </b>si vous utilisez déjà un plugin externe de gestion de la TVA, il vous suffit de renseigner le « Meta Name » dans le champ ci-dessous (Attention, il ne s’agit pas du Label). Si vous n'utilisez aucun plugin, ce champ doit être laissé vide.";
     }
 
     public static function displayEnableVatNumber()
@@ -161,20 +171,17 @@ abstract class EvolizSettings
         <?php
     }
 
-    public static function displayInfos()
+    public static function displayHelp()
     {
-        echo "<p>
-            Version du module Evoliz : " . manageVersion()->version
-                . "<br><br>
-            Nous travaillons en permanence sur le module afin de l'améliorer. Veillez à bien mettre à jour votre module à chaque fois que l'option vous est proposée.
-        </p>";
+        echo "Notre support client est disponible :
+        <br>- par chat depuis le site <a href='www.evoliz.com' target='_blank'>www.evoliz.com</a>
+        <br>- par téléphone au <a href='tel:01 46 72 50 04'>01 46 72 50 04</a>
+        <br>- par email à l'adresse <a href='mailto:support+api@evoliz.com'>support+api@evoliz.com</a>";
     }
 
     public static function displayLogs()
     {
-        echo "<p>
-            <a href='" . plugin_dir_url(__FILE__) . "includes/download-log.php'>" . "Cliquez ici pour télécharger le fichier evoliz.log</a>
-        </p>";
+        echo "<a href='" . plugin_dir_url(__FILE__) . "includes/download-log.php'>" . "Télécharger le fichier evoliz.log</a>";
     }
 
     public static function displayContact()
