@@ -30,7 +30,7 @@ abstract class EvolizSettings
                 add_settings_error('wporg_messages', 'wporg_message', 'Paramètres sauvegardés', 'updated');
             }
             settings_errors('wporg_messages');
-            $activeTab = "connection";
+            $activeTab = "credentials";
             if (isset($_GET["tab"])) {
                 $activeTab = $_GET["tab"];
             }
@@ -39,9 +39,9 @@ abstract class EvolizSettings
             ?>
 
             <h2 class="nav-tab-wrapper">
-                <a href="?page=evoliz_settings&tab=connection" class="nav-tab
+                <a href="?page=evoliz_settings&tab=credentials" class="nav-tab
                 <?php
-                if ($activeTab == 'connection') {
+                if ($activeTab == 'credentials') {
                     echo ' nav-tab-active';
                 }
                 ?>">
@@ -63,7 +63,7 @@ abstract class EvolizSettings
                 settings_fields($activeTab . "_section");
                 do_settings_sections("evoliz_settings");
 
-                if ($activeTab == "connection")
+                if ($activeTab == "credentials")
                     submit_button("Enregistrer les modifications", "primary", "evoliz_submit_config");
                 ?>
             </form>
@@ -76,12 +76,12 @@ abstract class EvolizSettings
     public static function evolizSettingsInit()
     {
         if (!isset($_GET["tab"]))
-            $tab = "connection";
+            $tab = "credentials";
         else {
             $tab = $_GET["tab"];
         }
 
-        if ($tab === "connection") {
+        if ($tab === "credentials") {
             add_settings_section("description_section", "Description", __CLASS__ . '::displayDescriptionHeader', "evoliz_settings");
 
             add_settings_section("credentials_section", "Identifiants et connexion", __CLASS__ . '::displayCredentialsHeader', "evoliz_settings");
@@ -108,19 +108,19 @@ abstract class EvolizSettings
 
     public static function displayDescriptionHeader()
     {
-        echo "La connexion du module Evoliz enrichit votre expérience WooCommerce. A compter de l’installation du plugin, bénéficiez de :
-        <br/><b>La synchronisation des nouveaux clients : </b>les clients qui effectuent une commande sont créés dans Evoliz en temps réel. Grâce aux champs [Société/Nom] et/ou [Nom du contact], nous pouvons analyser si le client est existant dans Evoliz, et ce, afin de ne pas créer de doublon.
-        <br/><b>La synchronisation des nouveaux contacts clients : </b>les contacts clients associés au client sont également créés dans Evoliz. Là aussi, les champs [Email] et [ID du client associé] nous permettent de  détecter les contacts clients existants afin de ne pas créer de doublon.
-        <br/><b>La synchronisation des opérations de ventes : </b>
+        echo "<p>La connexion du module Evoliz enrichit votre expérience WooCommerce. A compter de l’installation du plugin, bénéficiez de :</p>
+        <p><b>La synchronisation des nouveaux clients : </b>les clients qui effectuent une commande sont créés dans Evoliz en temps réel. Grâce aux champs [Société/Nom] et/ou [Nom du contact], nous pouvons analyser si le client est existant dans Evoliz, et ce, afin de ne pas créer de doublon.</p>
+        <p><b>La synchronisation des nouveaux contacts clients : </b>les contacts clients associés au client sont également créés dans Evoliz. Là aussi, les champs [Email] et [ID du client associé] nous permettent de  détecter les contacts clients existants afin de ne pas créer de doublon.</p>
+        <p><b>La synchronisation des opérations de ventes : </b>
         <br/>- toute <b>commande à l’état « en cours »</b> génère la création d’un bon de commande dans Evoliz
-        <br/>- toute <b>commande à l’état « terminée »</b> génère la création d’une facture dans Evoliz ainsi que le paiement qu’il lui est associé
-        <br/><b>Bon à savoir : </b>nous avons fait le choix de NE PAS synchroniser tout l'historique WooCommerce (clients, contacts client…). Seules les nouvelles commandes généreront les différentes synchronisations présentées ci-dessus.";
+        <br/>- toute <b>commande à l’état « terminée »</b> génère la création d’une facture dans Evoliz ainsi que le paiement qu’il lui est associé</p>
+        <p><b>Bon à savoir : </b>nous avons fait le choix de NE PAS synchroniser tout l'historique WooCommerce (clients, contacts client…). Seules les nouvelles commandes généreront les différentes synchronisations présentées ci-dessus.</p>";
     }
 
     public static function displayCredentialsHeader()
     {
-        echo "Pour connecter Evoliz à WooCommerce, vous aurez besoin de renseigner les identifiants de votre clé API. Rendez-vous dans votre compte Evoliz pour <a href='https://www.evoliz.com/aide/applications/624-evoliz-comment-creer-cle-api.html' target='_blank'>créer votre clé API et/ou récupérer vos données de connexion.</a>
-        <br/>De plus, vous devrez renseigner le numéro client de votre compte Evoliz. Pour le retrouver, vous devez vous connecter à ce dernier puis cliquer sur le point d'interrogation (coin supérieur droit) et récupérer la première partie du numéro de client affiché.";
+        echo "<p>Pour connecter Evoliz à WooCommerce, vous aurez besoin de renseigner les identifiants de votre clé API. Rendez-vous dans votre compte Evoliz pour <a href='https://www.evoliz.com/aide/applications/624-evoliz-comment-creer-cle-api.html' target='_blank'>créer votre clé API et/ou récupérer vos données de connexion.</a></p>
+        <p>De plus, vous devrez renseigner le numéro client de votre compte Evoliz. Pour le retrouver, vous devez vous connecter à ce dernier puis cliquer sur le point d'interrogation (coin supérieur droit) et récupérer la première partie du numéro de client affiché.</p>";
     }
 
     public static function displayCompanyID()
@@ -149,9 +149,9 @@ abstract class EvolizSettings
 
     public static function displayEuVatHeader()
     {
-        echo "Dans le cas où vous facturez des clients de type professionnel (entreprise ou administration publique), il est obligatoire de renseigner le numéro de TVA Intracommunautaire.
-        <br>Si tout ou partie de vos clients sont soumis à la TVA Intracommunautaire, l’activation de l’option du \"Traitement de la TVA intracommunautaire\" est nécessaire.
-        <br><b>Bon à savoir : </b>si vous utilisez déjà un plugin externe de gestion de la TVA, il vous suffit de renseigner le « Meta Name » dans le champ ci-dessous (Attention, il ne s’agit pas du Label). Si vous n'utilisez aucun plugin, ce champ doit être laissé vide.";
+        echo "<p>Dans le cas où vous facturez des clients de type professionnel (entreprise ou administration publique), il est obligatoire de renseigner le numéro de TVA Intracommunautaire.</p>
+        <p>Si tout ou partie de vos clients sont soumis à la TVA Intracommunautaire, l’activation de l’option du \"Traitement de la TVA intracommunautaire\" est nécessaire.</p>
+        <p><b>Bon à savoir : </b>si vous utilisez déjà un plugin externe de gestion de la TVA, il vous suffit de renseigner le « Meta Name » dans le champ ci-dessous (Attention, il ne s’agit pas du Label). Si vous n'utilisez aucun plugin, ce champ doit être laissé vide.</p>";
     }
 
     public static function displayEnableVatNumber()
@@ -173,21 +173,14 @@ abstract class EvolizSettings
 
     public static function displayHelp()
     {
-        echo "Notre support client est disponible :
+        echo "<p>Notre support client est disponible :
         <br>- par chat depuis le site <a href='www.evoliz.com' target='_blank'>www.evoliz.com</a>
         <br>- par téléphone au <a href='tel:01 46 72 50 04'>01 46 72 50 04</a>
-        <br>- par email à l'adresse <a href='mailto:support+api@evoliz.com'>support+api@evoliz.com</a>";
+        <br>- par email à l'adresse <a href='mailto:support+api@evoliz.com'>support+api@evoliz.com</a></p>";
     }
 
     public static function displayLogs()
     {
-        echo "<a href='" . plugin_dir_url(__FILE__) . "includes/download-log.php'>" . "Télécharger le fichier evoliz.log</a>";
-    }
-
-    public static function displayContact()
-    {
-        echo "<p>
-            En cas de problème, n'hésitez pas à <a href='https://www.evoliz.com\' target='_blank'>nous contacter directement sur Evoliz.</a>
-        </p>";
+        echo "<p><a href='" . plugin_dir_url(__FILE__) . "includes/download-log.php'>" . "Télécharger le fichier evoliz.log</a></p>";
     }
 }
