@@ -15,4 +15,4 @@ When an order is completed, the invoice is directly generated and the associated
 
 In order to connect your Evoliz account to the plugin, you need to fill in the necessary information (COMPANYID, API Public & Secret keys) on the plugin configuration page.
 
-![image](https://user-images.githubusercontent.com/40592871/175000233-e888d253-fa19-4a87-84dc-9fabbc591d4d.png)
+![image](https://user-images.githubusercontent.com/40592871/181478160-a921bced-8e75-450e-9f81-4205b50617a9.png)
