@@ -1,6 +1,7 @@
 <?php
 
 use Evoliz\Client\Config;
+use Evoliz\Client\Exception\ConfigException;
 use Evoliz\Client\Exception\ResourceException;
 
 require_once 'Class/EvolizSaleOrder.php';
@@ -64,24 +65,28 @@ abstract class Webhooks
     {
         $wcOrder = wc_get_order($orderId);
 
-        switch ($newStatus) {
-            case "on-hold" :
-                EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
-                break;
-            case "processing" :
-                if ($previousStatus !== 'on-hold') {
+        try {
+            switch ($newStatus) {
+                case "on-hold" :
                     EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
-                }
+                    break;
+                case "processing" :
+                    if ($previousStatus !== 'on-hold') {
+                        EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
+                    }
 
-                if ($wcOrder->get_payment_method() !== 'cod') {
+                    if ($wcOrder->get_payment_method() !== 'cod') {
+                        EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
+                    }
+                    break;
+                case "completed" :
+                    if (!in_array($previousStatus, ['on-hold', 'processing'])) {
+                        EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
+                    }
                     EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
-                }
-                break;
-            case "completed" :
-                if (!in_array($previousStatus, ['on-hold', 'processing'])) {
-                    EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
-                }
-                EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
+            }
+        } catch (ConfigException $exception) {
+            writeLog("[ Order : $orderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
         }
     }
 }
