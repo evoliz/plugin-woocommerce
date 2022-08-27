@@ -60,11 +60,12 @@ abstract class EvolizSettings
 
             <form method="post" action="options.php">
                 <?php
-                settings_fields($activeTab . "_section");
+                settings_fields("evoliz_settings");
                 do_settings_sections("evoliz_settings");
 
-                if ($activeTab == "credentials")
+                if ($activeTab == "credentials") {
                     submit_button("Enregistrer les modifications", "primary", "evoliz_submit_config");
+                }
                 ?>
             </form>
             <hr>
@@ -89,16 +90,16 @@ abstract class EvolizSettings
             add_settings_field("wc_evz_secret_key", "Clé secrète", __CLASS__ . '::displaySecretKey', "evoliz_settings", "credentials_section");
             add_settings_field("wc_evz_company_id", "Numéro de client", __CLASS__ . '::displayCompanyID', "evoliz_settings", "credentials_section");
 
+            register_setting("evoliz_settings", "wc_evz_public_key");
+            register_setting("evoliz_settings", "wc_evz_secret_key");
+            register_setting("evoliz_settings", "wc_evz_company_id");
+
             add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
             add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
             add_settings_field("wc_evz_eu_vat_number", "Champ du numéro de TVA intracommunautaire", __CLASS__ . '::displayVatNumberFields', "evoliz_settings", "eu_vat_section");
 
-            register_setting("credentials_section", "wc_evz_public_key");
-            register_setting("credentials_section", "wc_evz_secret_key");
-            register_setting("credentials_section", "wc_evz_company_id");
-
-            register_setting("eu_vat_section", "wc_evz_enable_vat_number");
-            register_setting("eu_vat_section", "wc_evz_eu_vat_number");
+            register_setting("evoliz_settings", "wc_evz_enable_vat_number");
+            register_setting("evoliz_settings", "wc_evz_eu_vat_number");
 
         } elseif ($tab === 'utils') {
             add_settings_section("help_section", "Informations utiles", __CLASS__ . '::displayHelp', "evoliz_settings");
