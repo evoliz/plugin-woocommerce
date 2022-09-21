@@ -138,10 +138,7 @@ abstract class EvolizSaleOrder
             ];
 
             if (($product->get_sale_price() !== null && $product->get_sale_price() > 0) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
-                $newItem['rebate'] = ($product->get_regular_price() - $product->get_sale_price()) * $quantity;
-                if (get_option('woocommerce_prices_include_tax') === 'yes') {
-                    $newItem['rebate'] = (wc_get_price_including_tax($product) - $product->get_sale_price()) * $quantity;
-                }
+                $newItem['rebate'] = ($unit_vat_exclude - $product->get_sale_price()) * $quantity;
             }
 
             if ($item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0) {
