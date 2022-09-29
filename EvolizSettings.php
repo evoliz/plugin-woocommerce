@@ -1,5 +1,7 @@
 <?php
 
+use Evoliz\Client\Config;
+
 abstract class EvolizSettings
 {
     public static function init() {
@@ -92,7 +94,10 @@ abstract class EvolizSettings
 
             register_setting("evoliz_settings", "wc_evz_public_key");
             register_setting("evoliz_settings", "wc_evz_secret_key");
-            register_setting("evoliz_settings", "wc_evz_company_id");
+            register_setting("evoliz_settings", "wc_evz_company_id", [
+                'type' => 'int',
+                'sanitize_callback' => __CLASS__ . '::validateCompanyId'
+            ]);
 
             add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
             add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
@@ -105,6 +110,28 @@ abstract class EvolizSettings
             add_settings_section("help_section", "Informations utiles", __CLASS__ . '::displayHelp', "evoliz_settings");
             add_settings_section("logs_section", "Fichier de log", __CLASS__ . '::displayLogs', "evoliz_settings");
         }
+    }
+
+    public static function validateCompanyId($newCompanyId) {
+        $oldCompanyId = get_option('wc_evz_company_id');
+
+        try {
+            if (get_option('wc_evz_public_key') === '' || get_option('wc_evz_secret_key') === '') {
+                throw new Exception();
+            }
+            $config = new Config((int) $newCompanyId, get_option('wc_evz_public_key'), get_option('wc_evz_secret_key'));
+            $config->authenticate();
+        } catch (Exception $e) {
+            add_settings_error('wporg_messages', 'wporg_message', 'Les identifiants n\'ont pas pu permettre de se connecter à l\'API Evoliz', 'error');
+            return '';
+        }
+
+        if (!$config->hasValidCompanyId()) {
+            add_settings_error('wporg_messages', 'wporg_message', 'Le numéro de client est invalide', 'error');
+            return $oldCompanyId;
+        }
+
+        return $newCompanyId;
     }
 
     public static function displayDescriptionHeader()
