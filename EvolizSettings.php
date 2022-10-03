@@ -28,7 +28,7 @@ abstract class EvolizSettings
             <h1>Configuration du module Evoliz</h1>
 
             <?php
-            if (isset($_GET['settings-updated'])) {
+            if (isset($_GET['settings-updated']) && empty(get_settings_errors('wporg_messages'))) {
                 add_settings_error('wporg_messages', 'wporg_message', 'Paramètres sauvegardés', 'updated');
             }
             settings_errors('wporg_messages');
@@ -98,7 +98,9 @@ abstract class EvolizSettings
                 'label_for' => 'wc_evz_company_id'
             ]);
 
-            register_setting('evoliz_settings', 'evoliz_settings_credentials');
+            register_setting('evoliz_settings', 'evoliz_settings_credentials', [
+                'sanitize_callback' => __CLASS__ . '::validateSettings'
+            ]);
 
             add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
             add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
@@ -113,27 +115,30 @@ abstract class EvolizSettings
         }
     }
 
-//    public static function validateCompanyId($newCompanyId) {
-//        $oldCompanyId = get_option('wc_evz_company_id');
-//
-//        try {
-//            if (get_option('wc_evz_public_key') === '' || get_option('wc_evz_secret_key') === '') {
-//                throw new Exception();
-//            }
-//            $config = new Config((int) $newCompanyId, get_option('wc_evz_public_key'), get_option('wc_evz_secret_key'));
-//            $config->authenticate();
-//        } catch (Exception $e) {
-//            add_settings_error('wporg_messages', 'wporg_message', 'Les identifiants n\'ont pas pu permettre de se connecter à l\'API Evoliz', 'error');
-//            return '';
-//        }
-//
-//        if (!$config->hasValidCompanyId()) {
-//            add_settings_error('wporg_messages', 'wporg_message', 'Le numéro de client est invalide', 'error');
-//            return $oldCompanyId;
-//        }
-//
-//        return $newCompanyId;
-//    }
+    public static function validateSettings($data) {
+        $has_errors = false;
+
+        try {
+            if ($data['wc_evz_public_key'] === '' || $data['wc_evz_secret_key'] === '') {
+                throw new Exception();
+            }
+            $config = new Config((int) $data['wc_evz_company_id'], $data['wc_evz_public_key'], $data['wc_evz_secret_key']);
+            $config->authenticate();
+
+            if (!$config->hasValidCompanyId()) {
+                add_settings_error('wporg_messages', 'wporg_message', 'Le numéro de client est invalide', 'error');
+                $has_errors = true;
+            }
+        } catch (Exception $e) {
+            add_settings_error('wporg_messages', 'wporg_message', 'Les identifiants n\'ont pas pu permettre de se connecter à l\'API Evoliz', 'error');
+            $has_errors = true;
+        }
+
+        if ($has_errors) {
+            return null;
+        }
+        return $data;
+    }
 
     public static function displayDescriptionHeader()
     {
