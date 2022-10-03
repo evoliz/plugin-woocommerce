@@ -88,16 +88,17 @@ abstract class EvolizSettings
             add_settings_section("description_section", "Description", __CLASS__ . '::displayDescriptionHeader', "evoliz_settings");
 
             add_settings_section("credentials_section", "Identifiants et connexion", __CLASS__ . '::displayCredentialsHeader', "evoliz_settings");
-            add_settings_field("wc_evz_public_key", "Clé publique", __CLASS__ . '::displayPublicKey', "evoliz_settings", "credentials_section");
-            add_settings_field("wc_evz_secret_key", "Clé secrète", __CLASS__ . '::displaySecretKey', "evoliz_settings", "credentials_section");
-            add_settings_field("wc_evz_company_id", "Numéro de client", __CLASS__ . '::displayCompanyID', "evoliz_settings", "credentials_section");
-
-            register_setting("evoliz_settings", "wc_evz_public_key");
-            register_setting("evoliz_settings", "wc_evz_secret_key");
-            register_setting("evoliz_settings", "wc_evz_company_id", [
-                'type' => 'int',
-                'sanitize_callback' => __CLASS__ . '::validateCompanyId'
+            add_settings_field("wc_evz_public_key", "Clé publique", __CLASS__ . '::displayPublicKey', "evoliz_settings", "credentials_section", [
+                'label_for' => 'wc_evz_public_key'
             ]);
+            add_settings_field("wc_evz_secret_key", "Clé secrète", __CLASS__ . '::displaySecretKey', "evoliz_settings", "credentials_section", [
+                'label_for' => 'wc_evz_secret_key'
+            ]);
+            add_settings_field("wc_evz_company_id", "Numéro de client", __CLASS__ . '::displayCompanyID', "evoliz_settings", "credentials_section", [
+                'label_for' => 'wc_evz_company_id'
+            ]);
+
+            register_setting('evoliz_settings', 'evoliz_settings_credentials');
 
             add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
             add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
@@ -112,27 +113,27 @@ abstract class EvolizSettings
         }
     }
 
-    public static function validateCompanyId($newCompanyId) {
-        $oldCompanyId = get_option('wc_evz_company_id');
-
-        try {
-            if (get_option('wc_evz_public_key') === '' || get_option('wc_evz_secret_key') === '') {
-                throw new Exception();
-            }
-            $config = new Config((int) $newCompanyId, get_option('wc_evz_public_key'), get_option('wc_evz_secret_key'));
-            $config->authenticate();
-        } catch (Exception $e) {
-            add_settings_error('wporg_messages', 'wporg_message', 'Les identifiants n\'ont pas pu permettre de se connecter à l\'API Evoliz', 'error');
-            return '';
-        }
-
-        if (!$config->hasValidCompanyId()) {
-            add_settings_error('wporg_messages', 'wporg_message', 'Le numéro de client est invalide', 'error');
-            return $oldCompanyId;
-        }
-
-        return $newCompanyId;
-    }
+//    public static function validateCompanyId($newCompanyId) {
+//        $oldCompanyId = get_option('wc_evz_company_id');
+//
+//        try {
+//            if (get_option('wc_evz_public_key') === '' || get_option('wc_evz_secret_key') === '') {
+//                throw new Exception();
+//            }
+//            $config = new Config((int) $newCompanyId, get_option('wc_evz_public_key'), get_option('wc_evz_secret_key'));
+//            $config->authenticate();
+//        } catch (Exception $e) {
+//            add_settings_error('wporg_messages', 'wporg_message', 'Les identifiants n\'ont pas pu permettre de se connecter à l\'API Evoliz', 'error');
+//            return '';
+//        }
+//
+//        if (!$config->hasValidCompanyId()) {
+//            add_settings_error('wporg_messages', 'wporg_message', 'Le numéro de client est invalide', 'error');
+//            return $oldCompanyId;
+//        }
+//
+//        return $newCompanyId;
+//    }
 
     public static function displayDescriptionHeader()
     {
@@ -151,27 +152,30 @@ abstract class EvolizSettings
         <p>De plus, vous devrez renseigner le numéro client de votre compte Evoliz. Pour le retrouver, vous devez vous connecter à ce dernier puis cliquer sur le point d'interrogation (coin supérieur droit) et récupérer la première partie du numéro de client affiché.</p>";
     }
 
-    public static function displayCompanyID()
+    public static function displayCompanyID($args)
     {
+        $options = get_option('evoliz_settings_credentials');
         ?>
-        <input style="width: 385px;" type="number" name="wc_evz_company_id" id="wc_evz_company_id"
-               value="<?php echo esc_attr(get_option('wc_evz_company_id')); ?>"/>
+        <input style="width: 385px;" type="number" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
+               value="<?php echo esc_attr($options[$args['label_for']]); ?>" />
         <?php
     }
 
-    public static function displayPublicKey()
+    public static function displayPublicKey($args)
     {
+        $options = get_option('evoliz_settings_credentials');
         ?>
-        <input style="width: 385px;" type="text" name="wc_evz_public_key" id="wc_evz_public_key"
-               value="<?php echo esc_attr(get_option('wc_evz_public_key')); ?>"/>
+        <input style="width: 385px;" type="text" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
+               value="<?php echo esc_attr($options[$args['label_for']]); ?>" />
         <?php
     }
 
-    public static function displaySecretKey()
+    public static function displaySecretKey($args)
     {
+        $options = get_option('evoliz_settings_credentials');
         ?>
-        <input style="width: 385px;" type="text" name="wc_evz_secret_key" id="wc_evz_secret_key"
-               value="<?php echo esc_attr(get_option('wc_evz_secret_key')); ?>"/>
+        <input style="width: 385px;" type="text" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
+               value="<?php echo esc_attr($options[$args['label_for']]); ?>" />
         <?php
     }
 
