@@ -125,11 +125,6 @@ abstract class EvolizSaleOrder
             $quantity = $item->get_quantity();
             writeLog("[ Order : $orderId ] Adding product '$productName' (x$quantity) to the Sale Order...");
 
-            $wcTax = WC_Tax::get_base_tax_rates($product->get_tax_class());
-            if (!empty($wcTax)) {
-                $wcTax = reset($wcTax);
-            }
-
             $unit_vat_exclude = get_option('woocommerce_prices_include_tax') === 'yes' ? wc_get_price_excluding_tax($product) : $product->get_regular_price();
             $newItem = [
                 'designation' => $productName,
@@ -141,8 +136,10 @@ abstract class EvolizSaleOrder
                 $newItem['rebate'] = ($unit_vat_exclude - $product->get_sale_price()) * $quantity;
             }
 
-            if ($item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0) {
-                $newItem['vat_rate'] = $wcTax["rate"];
+            $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
+            if ($hasTaxes) {
+                writeLog("[ Order : $orderId ] Adding  {$item->get_subtotal_tax()} € of taxes for '$productName'  to the Sale Order...");
+                $newItem['vat_rate'] = round((float) $item->get_subtotal_tax() / (float) $unit_vat_exclude * 100, 2);;
             }
 
             $items[] = new Item($newItem);
