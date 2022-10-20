@@ -139,7 +139,7 @@ abstract class EvolizSaleOrder
             $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
             if ($hasTaxes) {
                 writeLog("[ Order : $orderId ] Adding  {$item->get_subtotal_tax()} € of taxes for '$productName'  to the Sale Order...");
-                $newItem['vat_rate'] = round((float) $item->get_subtotal_tax() / (float) $unit_vat_exclude * 100, 2);;
+                $newItem['vat_rate'] = round((float) $item->get_subtotal_tax() / (float) ($unit_vat_exclude * $quantity) * 100, 2);;
             }
 
             $items[] = new Item($newItem);
