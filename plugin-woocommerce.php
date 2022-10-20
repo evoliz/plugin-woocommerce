@@ -2,7 +2,7 @@
 /*
 Plugin Name: Evoliz
 description: Evoliz integration for Woocommerce
-Version: 0.7.0
+Version: 0.9.0
 Author: Evoliz
 Author URI: https://www.evoliz.com/
 */
@@ -17,7 +17,8 @@ require_once 'includes/log.php';
 require_once 'includes/update-manager.php';
 
 EvolizSettings::init();
-
-if (get_option('wc_evz_company_id') != '' && get_option('wc_evz_public_key') != '' && get_option('wc_evz_secret_key') != '') {
-    Webhooks::init(new Config(get_option('wc_evz_company_id'), get_option('wc_evz_public_key'), get_option('wc_evz_secret_key')));
+//throw
+$options = get_option('evoliz_settings_credentials');
+if ($options['wc_evz_company_id'] != '' && $options['wc_evz_public_key'] != '' && $options['wc_evz_secret_key'] != '') {
+    Webhooks::init(new Config((int) $options['wc_evz_company_id'], $options['wc_evz_public_key'], $options['wc_evz_secret_key']));
 }

@@ -1,7 +1,7 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "latestRelease": {
-    "version": "0.5.0",
+    "version": "0.9.0",
     "downloadLink": "https://api.github.com/repos/evoliz/plugin-woocommerce/zipball/v0.5.0"
   }
 }
