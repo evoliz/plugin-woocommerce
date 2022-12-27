@@ -133,7 +133,7 @@ abstract class EvolizSaleOrder
             ];
 
             if (($product->get_sale_price() !== null && $product->get_sale_price() > 0) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
-                $newItem['rebate'] = ($unit_vat_exclude - $product->get_sale_price()) * $quantity;
+                $newItem['rebate'] = round(((float) $unit_vat_exclude - (float) $product->get_sale_price()) * $quantity, 2);
             }
 
             $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;

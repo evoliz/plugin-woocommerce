@@ -48,7 +48,7 @@ abstract class EvolizClient
                         'iso2' => $order->get_billing_country(),
                         'addr' => $order->get_billing_address_1()
                     ],
-                    'phone' => $order->get_billing_phone(),
+                    'phone' => $order->get_billing_phone() ?? '',
                     'comment' => 'Client created from Woocommerce'
                 ];
 
