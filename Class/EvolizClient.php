@@ -45,7 +45,7 @@ abstract class EvolizClient
                     'address' => [
                         'postcode' => $order->get_billing_postcode(),
                         'town' => $order->get_billing_city(),
-                        'iso2' => $order->get_billing_country(),
+                        'iso2' => $order->get_billing_country() ?? 'FR',
                         'addr' => $order->get_billing_address_1()
                     ],
                     'phone' => (string) $order->get_billing_phone(),
