@@ -125,24 +125,31 @@ abstract class EvolizSaleOrder
             $quantity = $item->get_quantity();
             writeLog("[ Order : $orderId ] Adding product '$productName' (x$quantity) to the Sale Order...");
 
-            $wcTax = WC_Tax::get_base_tax_rates($product->get_tax_class());
-            if (!empty($wcTax)) {
-                $wcTax = reset($wcTax);
-            }
-
-            $unit_vat_exclude = get_option('woocommerce_prices_include_tax') === 'yes' ? wc_get_price_excluding_tax($product) : $product->get_regular_price();
+            $priceExcludingTax = wc_get_price_excluding_tax($product);
+            $unit_vat_exclude = get_option('woocommerce_prices_include_tax') === 'yes' ? $priceExcludingTax : $product->get_regular_price();
             $newItem = [
                 'designation' => $productName,
                 'quantity' => $quantity,
                 'unit_price_vat_exclude' => round($unit_vat_exclude, 2),
             ];
 
-            if (($product->get_sale_price() !== null && $product->get_sale_price() > 0) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
-                $newItem['rebate'] = ($unit_vat_exclude - $product->get_sale_price()) * $quantity;
+            if (get_option('woocommerce_prices_include_tax') !== 'yes') {
+                if (($product->get_sale_price() !== null && $product->get_sale_price() > 0) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
+                    $newItem['rebate'] = round(((float) $unit_vat_exclude - (float) $product->get_sale_price()) * $quantity, 2);
+                }
+            } else {
+                $newItem['rebate'] = 0;
+                $fakeRebate = $product->get_regular_price() - $product->get_sale_price();
+                $newItem['designation'] .= ' (dont ' . $fakeRebate . ' € de remise TTC)';
+                $newItem['unit_price_vat_exclude'] = round($priceExcludingTax, 2);
             }
 
-            if ($item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0) {
-                $newItem['vat_rate'] = $wcTax["rate"];
+            $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
+            if ($hasTaxes) {
+                $tax = new WC_Tax();
+                $taxes = $tax->get_rates($product->get_tax_class());
+                $rates = array_shift($taxes);
+                $newItem['vat_rate'] = $rates['rate'];
             }
 
             $items[] = new Item($newItem);
@@ -173,8 +180,12 @@ abstract class EvolizSaleOrder
                 'unit_price_vat_exclude' => $unitPrice,
             ];
 
-            if ($order->get_shipping_tax() > 0) {
-                $shipping['vat_rate'] = (float) ($order->get_shipping_tax() / $order->get_shipping_total() * 100);
+            $shipping['vat_rate'] = 0;
+            foreach( $order->get_items('tax') as $item_tax ){
+                $tax_data = $item_tax->get_data();
+                if ($tax_data['shipping_tax_total'] ===  $order->get_shipping_tax()) {
+                    $shipping['vat_rate'] =  $tax_data['rate_percent'];
+                }
             }
 
             $items[] = new Item($shipping);
