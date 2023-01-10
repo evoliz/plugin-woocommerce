@@ -88,13 +88,13 @@ abstract class EvolizSettings
             add_settings_section("description_section", "Description", __CLASS__ . '::displayDescriptionHeader', "evoliz_settings");
 
             add_settings_section("credentials_section", "Identifiants et connexion", __CLASS__ . '::displayCredentialsHeader', "evoliz_settings");
-            add_settings_field("wc_evz_public_key", "Clé publique", __CLASS__ . '::displayPublicKey', "evoliz_settings", "credentials_section", [
+            add_settings_field("wc_evz_public_key", "Clé publique *", __CLASS__ . '::displayPublicKey', "evoliz_settings", "credentials_section", [
                 'label_for' => 'wc_evz_public_key'
             ]);
-            add_settings_field("wc_evz_secret_key", "Clé secrète", __CLASS__ . '::displaySecretKey', "evoliz_settings", "credentials_section", [
+            add_settings_field("wc_evz_secret_key", "Clé secrète *", __CLASS__ . '::displaySecretKey', "evoliz_settings", "credentials_section", [
                 'label_for' => 'wc_evz_secret_key'
             ]);
-            add_settings_field("wc_evz_company_id", "Numéro de client", __CLASS__ . '::displayCompanyID', "evoliz_settings", "credentials_section", [
+            add_settings_field("wc_evz_company_id", "Numéro de client *", __CLASS__ . '::displayCompanyID', "evoliz_settings", "credentials_section", [
                 'label_for' => 'wc_evz_company_id'
             ]);
 
@@ -119,9 +119,10 @@ abstract class EvolizSettings
         $has_errors = false;
 
         try {
-            if ($data['wc_evz_public_key'] === '' || $data['wc_evz_secret_key'] === '') {
-                throw new Exception();
+            if (!$data['wc_evz_public_key'] || !$data['wc_evz_secret_key'] || !$data['wc_evz_company_id']){
+                throw new Exception('Les champs <strong>"Clé publique", "Clé secrète" et "Numéro de client"</strong> sont obligatoires. Merci de vérifier votre saisie.');
             }
+
             $config = new Config((int) $data['wc_evz_company_id'], $data['wc_evz_public_key'], $data['wc_evz_secret_key']);
             $config->authenticate();
 
@@ -130,7 +131,7 @@ abstract class EvolizSettings
                 $has_errors = true;
             }
         } catch (Exception $e) {
-            add_settings_error('wporg_messages', 'wporg_message', 'Les identifiants n\'ont pas pu permettre de se connecter à l\'API Evoliz', 'error');
+            add_settings_error('wporg_messages', 'wporg_message', $e->getMessage(), 'error');
             $has_errors = true;
         }
 
@@ -171,7 +172,7 @@ abstract class EvolizSettings
         $options = get_option('evoliz_settings_credentials');
         ?>
         <input style="width: 385px;" type="text" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
-               value="<?php echo esc_attr($options[$args['label_for']]); ?>" />
+               value="<?= isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : '' ?>" />
         <?php
     }
 
@@ -180,7 +181,7 @@ abstract class EvolizSettings
         $options = get_option('evoliz_settings_credentials');
         ?>
         <input style="width: 385px;" type="text" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
-               value="<?php echo esc_attr($options[$args['label_for']]); ?>" />
+               value="<?= isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : '' ?>" />
         <?php
     }
 
