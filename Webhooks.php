@@ -8,7 +8,7 @@ require_once 'Class/EvolizSaleOrder.php';
 
 abstract class Webhooks
 {
-    public static Config $config;
+    public static $config;
 
     /**
      * @param Config $config
