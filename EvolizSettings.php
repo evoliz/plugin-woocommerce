@@ -163,7 +163,7 @@ abstract class EvolizSettings
         $options = get_option('evoliz_settings_credentials');
         ?>
         <input style="width: 385px;" type="number" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
-               value="<?php echo esc_attr($options[$args['label_for']]); ?>" />
+               value="<?= isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : '' ?>" />
         <?php
     }
 
