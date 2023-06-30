@@ -138,7 +138,7 @@ abstract class EvolizSaleOrder
                     $newItem['rebate'] = round(((float)$unit_vat_exclude - (float)$product->get_sale_price()) * $quantity, 2);
                 } else {
                     $newItem['rebate'] = 0;
-                    $fakeRebate = $product->get_regular_price() - $product->get_sale_price();
+                    $fakeRebate = (float) $product->get_regular_price() - (float) $product->get_sale_price();
                     $newItem['designation'] .= ' (dont ' . $fakeRebate . ' € de remise TTC)';
                     $newItem['unit_price_vat_exclude'] = round($priceExcludingTax, 2);
                 }
