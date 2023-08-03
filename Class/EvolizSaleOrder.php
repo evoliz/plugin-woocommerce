@@ -133,7 +133,7 @@ abstract class EvolizSaleOrder
                 'unit_price_vat_exclude' => round($unit_vat_exclude, 2),
             ];
 
-            if (($product->get_sale_price() !== null) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
+            if (($product->get_sale_price() != null) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
                 if (get_option('woocommerce_prices_include_tax') !== 'yes') {
                     $newItem['rebate'] = round(((float)$unit_vat_exclude - (float)$product->get_sale_price()) * $quantity, 2);
                 } else {
