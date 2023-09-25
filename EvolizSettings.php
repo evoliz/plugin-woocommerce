@@ -7,6 +7,13 @@ abstract class EvolizSettings
     public static function init() {
         add_action('admin_menu',  __CLASS__ . '::addAdminMenu');
         add_action('admin_init',  __CLASS__ . '::evolizSettingsInit');
+        add_action('admin_head',  __CLASS__ . '::loadAssets');
+    }
+
+
+    public static function loadAssets()
+    {
+        wp_enqueue_style('evoliz-woocommerce-backend', plugin_dir_url(__FILE__) . 'Assets/css/admin.css');
     }
 
     public static function addAdminMenu() {
@@ -211,14 +218,30 @@ abstract class EvolizSettings
 
     public static function displayHelp()
     {
-        echo "<p>Notre support client est disponible :
-        <br>- par chat depuis le site <a href='www.evoliz.com' target='_blank'>www.evoliz.com</a>
-        <br>- par téléphone au <a href='tel:01 46 72 50 04'>01 46 72 50 04</a>
-        <br>- par email à l'adresse <a href='mailto:support+api@evoliz.com'>support+api@evoliz.com</a></p>";
+        ?>
+        <p>Notre support client est disponible :
+        <br>- par chat depuis le site <a href="https://www.evoliz.com" target="_blank">www.evoliz.com</a>
+        <br>- par téléphone au <a href="tel:0146725004">01 46 72 50 04</a>
+        <br>- par email à l'adresse <a href="mailto:support+api@evoliz.com">support+api@evoliz.com</a></p>
+        <?php
     }
 
     public static function displayLogs()
     {
-        echo "<p><a href='" . plugin_dir_url(__FILE__) . "includes/download-log.php'>" . "Télécharger le fichier evoliz.log</a></p>";
+        $file = __DIR__ . '/evoliz.log';
+        $lines = 50;
+
+        if (file_exists($file)) {
+            echo '<div class="evoliz-logs">';
+            $data = file($file);
+            $data = array_slice(array_reverse($data), 0, $lines);
+            foreach ($data as $line) {
+                echo $line . '<br />';
+            }
+            echo '</div>';
+            echo '<p><a href="' . plugin_dir_url(__FILE__) . 'includes/download-log.php">Télécharger le fichier complet de logs</a></p>';
+        } else {
+            echo '<p>Les logs sont vides.</p>';
+        }
     }
 }
