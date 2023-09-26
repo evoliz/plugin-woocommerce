@@ -34,8 +34,9 @@ abstract class EvolizSaleOrder
             try {
                 $clientId = EvolizClient::findOrCreate($config, $order);
 
-                if (!$clientId)
+                if (!$clientId) {
                     throw new Exception('Error finding or creating client.');
+                }
 
                 $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
 
