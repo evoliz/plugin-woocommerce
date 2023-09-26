@@ -4,6 +4,8 @@ use Evoliz\Client\Config;
 
 abstract class EvolizSettings
 {
+    public static $logFile = __DIR__ . '/evoliz.log';
+
     public static function init() {
         add_action('admin_menu',  __CLASS__ . '::addAdminMenu');
         add_action('admin_init',  __CLASS__ . '::evolizSettingsInit');
@@ -118,7 +120,10 @@ abstract class EvolizSettings
 
         } elseif ($tab === 'utils') {
             add_settings_section("help_section", "Informations utiles", __CLASS__ . '::displayHelp', "evoliz_settings");
-            add_settings_section("logs_section", "Fichier de log", __CLASS__ . '::displayLogs', "evoliz_settings");
+
+            if (file_exists(self::$logFile)) {
+                add_settings_section("logs_section", "Fichier de log", __CLASS__ . '::displayLogs', "evoliz_settings");
+            }
         }
     }
 
@@ -228,12 +233,11 @@ abstract class EvolizSettings
 
     public static function displayLogs()
     {
-        $file = __DIR__ . '/evoliz.log';
         $lines = 50;
 
-        if (file_exists($file)) {
+        if (file_exists(self::$logFile)) {
             echo '<div class="evoliz-logs">';
-            $data = file($file);
+            $data = file(self::$logFile);
             $data = array_slice(array_reverse($data), 0, $lines);
             foreach ($data as $line) {
                 echo $line . '<br />';
