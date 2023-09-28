@@ -89,6 +89,10 @@ abstract class EvolizSaleOrder
         $evolizOrderId = $wcOrder->get_meta('EVOLIZ_CORDERID', true);
 
         try {
+            if (empty($evolizOrderId)) {
+                throw new Exception('Evoliz order id is missing in meta.');
+            }
+
             $saleOrderRepository = new SaleOrderRepository($config);
             $evolizOrder = $saleOrderRepository->detail($evolizOrderId);
 
