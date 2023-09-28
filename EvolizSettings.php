@@ -6,19 +6,21 @@ abstract class EvolizSettings
 {
     public static $logFile = __DIR__ . '/evoliz.log';
 
-    public static function init() {
-        add_action('admin_menu',  __CLASS__ . '::addAdminMenu');
-        add_action('admin_init',  __CLASS__ . '::evolizSettingsInit');
-        add_action('admin_head',  __CLASS__ . '::loadAssets');
+    public static function init()
+    {
+        add_action('admin_menu', __CLASS__ . '::addAdminMenu');
+        add_action('admin_init', __CLASS__ . '::evolizSettingsInit');
+        add_action('admin_head', __CLASS__ . '::loadAssets');
+        add_action('admin_action_download_evoliz_logs', __CLASS__ . '::downloadLogs');
     }
-
 
     public static function loadAssets()
     {
         wp_enqueue_style('evoliz-woocommerce-backend', plugin_dir_url(__FILE__) . 'Assets/css/admin.css');
     }
 
-    public static function addAdminMenu() {
+    public static function addAdminMenu()
+    {
         add_menu_page(
             'Evoliz',
             'Evoliz',
@@ -243,9 +245,26 @@ abstract class EvolizSettings
                 echo $line . '<br />';
             }
             echo '</div>';
-            echo '<p><a href="' . plugin_dir_url(__FILE__) . 'includes/download-log.php">Télécharger le fichier complet de logs</a></p>';
+            echo '<p><a href="' . esc_url(admin_url('admin.php')) . '?action=download_evoliz_logs">Télécharger le fichier complet de logs</a></p>';
         } else {
             echo '<p>Les logs sont vides.</p>';
         }
+    }
+
+    public static function downloadLogs()
+    {
+        if (!file_exists(self::$logFile)) {
+            wp_redirect(admin_url('admin.php') . '?page=evoliz_settings&tab=utils');
+        }
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . basename(self::$logFile) . '"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize(self::$logFile));
+        readfile(self::$logFile);
+        exit;
     }
 }
