@@ -123,25 +123,19 @@ abstract class EvolizSaleOrder
             $product = $item->get_product();
             $productName = $product->get_name();
             $quantity = $item->get_quantity();
+
             writeLog("[ Order : $orderId ] Adding product '$productName' (x$quantity) to the Sale Order...");
 
-            $priceExcludingTax = wc_get_price_excluding_tax($product);
-            $unit_vat_exclude = get_option('woocommerce_prices_include_tax') === 'yes' ? $priceExcludingTax : $product->get_regular_price();
+            $unit_vat_exclude = $item->get_subtotal() / $item->get_quantity();
+
             $newItem = [
                 'designation' => $productName,
                 'quantity' => $quantity,
                 'unit_price_vat_exclude' => round($unit_vat_exclude, 2),
             ];
 
-            if (($product->get_sale_price() != null) && round($product->get_regular_price(), 2) > $product->get_sale_price()) {
-                if (get_option('woocommerce_prices_include_tax') !== 'yes') {
-                    $newItem['rebate'] = round(((float)$unit_vat_exclude - (float)$product->get_sale_price()) * $quantity, 2);
-                } else {
-                    $newItem['rebate'] = 0;
-                    $fakeRebate = (float) $product->get_regular_price() - (float) $product->get_sale_price();
-                    $newItem['designation'] .= ' (dont ' . $fakeRebate . ' € de remise TTC)';
-                    $newItem['unit_price_vat_exclude'] = round($priceExcludingTax, 2);
-                }
+            if ($item->get_subtotal() != $item->get_total()) {
+                $newItem['rebate'] = round($item->get_subtotal() - $item->get_total(), 2);
             }
 
             $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
@@ -156,7 +150,6 @@ abstract class EvolizSaleOrder
         }
 
         self::addShippingCostsToItems($order, $items);
-        self::addGlobalRebateToItems($order, $items);
 
         return $items;
     }
@@ -189,29 +182,6 @@ abstract class EvolizSaleOrder
             }
 
             $items[] = new Item($shipping);
-        }
-    }
-
-    /**
-     * @param object $order Woocommerce order
-     * @param array $items Array of Items
-     *
-     * @return void
-     */
-    private static function addGlobalRebateToItems(object $order, array &$items)
-    {
-        if ($order->get_discount_total() !== null && $order->get_discount_total() > 0) {
-            $orderId = (string) $order->get_order_number();
-            $unitPrice = -round(($order->get_discount_total() + $order->get_discount_tax()), 2);
-            writeLog("[ Order : $orderId ] Add a global rebate line ($unitPrice) to the Sale Order...");
-
-            $rebate = [
-                'designation' => 'Remise globale',
-                'quantity' => 1,
-                'unit_price_vat_exclude' => $unitPrice,
-            ];
-
-            $items[] = new Item($rebate);
         }
     }
 }
