@@ -155,6 +155,7 @@ abstract class EvolizSaleOrder
             $items[] = new Item($newItem);
         }
 
+        self::addFeesToItems($order, $items);
         self::addShippingCostsToItems($order, $items);
         self::addGlobalRebateToItems($order, $items);
 
@@ -189,6 +190,37 @@ abstract class EvolizSaleOrder
             }
 
             $items[] = new Item($shipping);
+        }
+    }
+
+    /**
+     * @param object $order Woocommerce order
+     * @param array $items Array of Items
+     *
+     * @return void
+     */
+    private static function addFeesToItems(object $order, array &$items)
+    {
+        $orderId = (string) $order->get_order_number();
+
+        foreach ($order->get_items('fee') as $item) {
+            writeLog("[ Order : $orderId ] Add a fee line to the Sale Order...");
+
+            $priceTotal = $item->get_total() + $item->get_total_tax();
+            $newItem = [
+                'designation' => $item->get_name(),
+                'quantity' => $item->get_quantity(),
+                'unit_price_vat_exclude' => round($item->get_total(), 2),
+            ];
+
+            $hasTaxes = $item->get_total_tax() !== null && $item->get_total_tax() > 0;
+
+            if ($hasTaxes) {
+                $vat_rate = ($priceTotal - $item->get_total()) / $item->get_total() * 100;
+                $newItem['vat_rate'] = round($vat_rate, 2);
+            }
+
+            $items[] = new Item($newItem);
         }
     }
 
