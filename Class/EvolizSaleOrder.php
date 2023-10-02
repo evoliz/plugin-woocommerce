@@ -173,7 +173,7 @@ abstract class EvolizSaleOrder
                 'unit_price_vat_exclude' => $unitPrice,
             ];
 
-            $shipping['vat_rate'] = 0;
+            $shipping['vat_rate'] = null;
             foreach( $order->get_items('tax') as $item_tax ){
                 $tax_data = $item_tax->get_data();
                 if ($tax_data['shipping_tax_total'] ===  $order->get_shipping_tax()) {
