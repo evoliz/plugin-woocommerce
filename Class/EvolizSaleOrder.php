@@ -220,27 +220,4 @@ abstract class EvolizSaleOrder
             $items[] = new Item($newItem);
         }
     }
-
-    /**
-     * @param object $order Woocommerce order
-     * @param array $items Array of Items
-     *
-     * @return void
-     */
-    private static function addGlobalRebateToItems(object $order, array &$items)
-    {
-        if ($order->get_discount_total() !== null && $order->get_discount_total() > 0) {
-            $orderId = (string) $order->get_order_number();
-            $unitPrice = -round(($order->get_discount_total() + $order->get_discount_tax()), 2);
-            writeLog("[ Order : $orderId ] Add a global rebate line ($unitPrice) to the Sale Order...");
-
-            $rebate = [
-                'designation' => 'Remise globale',
-                'quantity' => 1,
-                'unit_price_vat_exclude' => $unitPrice,
-            ];
-
-            $items[] = new Item($rebate);
-        }
-    }
 }
