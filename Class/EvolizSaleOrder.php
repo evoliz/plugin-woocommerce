@@ -33,6 +33,11 @@ abstract class EvolizSaleOrder
             writeLog("[ Order : $orderId ] Creating the Sale Order from WooCommerce to Evoliz...");
             try {
                 $clientId = EvolizClient::findOrCreate($config, $order);
+
+                if (!$clientId) {
+                    throw new Exception('Error finding or creating client.');
+                }
+
                 $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
 
                 $items = self::extractItemsFromOrder($order);
@@ -59,16 +64,11 @@ abstract class EvolizSaleOrder
                 }
 
                 $saleOrder = $saleOrderRepository->create(new SaleOrder($newSaleOrder));
+
                 writeLog("[ Order : $orderId ] The Sale Order has been successfully created ($saleOrder->orderid).\n");
 
-                //                $order->update_meta_data('evoliz', esc_attr(htmlspecialchars((string) $saleOrder)));
-                //                foreach ($order->get_meta_data() as $metaData) {
-                //                    if ($metaData->key === 'evoliz') {
-                //                        $toto = $metaData->value;
-                //                        writeLog("[ ifcbeuzfbuhzebfuhezhbfuhezhbfuhezh ] The Sale Order  ($toto).\n");
-                //                    }
-                //                }
-
+                $order->update_meta_data('EVOLIZ_CORDERID', $saleOrder->orderid);
+                $order->save();
             } catch (Exception $exception) {
                 writeLog("[ Order : $orderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
             }
@@ -86,24 +86,28 @@ abstract class EvolizSaleOrder
     public static function invoiceAndPay(Config $config, object $wcOrder, bool $save = true)
     {
         $wcOrderId = $wcOrder->get_order_number();
+        $evolizOrderId = $wcOrder->get_meta('EVOLIZ_CORDERID', true);
 
-        $saleOrderRepository = new SaleOrderRepository($config);
+        try {
+            if (empty($evolizOrderId)) {
+                throw new Exception('Evoliz order id is missing in meta.');
+            }
 
-        $matchingSaleOrders = $saleOrderRepository->list(['search' => (string) $wcOrder->get_order_number()]);
+            $saleOrderRepository = new SaleOrderRepository($config);
+            $evolizOrder = $saleOrderRepository->detail($evolizOrderId);
 
-        if (!empty($matchingSaleOrders->data) && $matchingSaleOrders->data[0]->status !== 'invoice') {
-            try {
+            if ($evolizOrder->status !== 'invoice') {
                 writeLog("[ Order : $wcOrderId ] Payment received. Creation of the Invoice...");
-                $invoice = $saleOrderRepository->invoice($matchingSaleOrders->data[0]->orderid, $save);
+                $invoice = $saleOrderRepository->invoice($evolizOrder->orderid, $save);
                 $invoiceId = $invoice->invoiceid;
                 writeLog("[ Order : $wcOrderId ] The Sale Order has been successfully invoiced ($invoiceId).");
 
                 writeLog("[ Order : $wcOrderId ] Creation of the Payment...");
                 $payment = EvolizInvoice::pay($config, $invoiceId, EvolizPayment::getPayTypeId($wcOrder->get_payment_method()));
                 writeLog("[ Order : $wcOrderId ] The Payment has been successfully created ($payment->paymentid).\n");
-            } catch (Exception $exception) {
-                writeLog("[ Order : $wcOrderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
             }
+        } catch (Exception $exception) {
+            writeLog("[ Order : $wcOrderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
         }
     }
 
@@ -149,6 +153,7 @@ abstract class EvolizSaleOrder
             $items[] = new Item($newItem);
         }
 
+        self::addFeesToItems($order, $items);
         self::addShippingCostsToItems($order, $items);
 
         return $items;
@@ -182,6 +187,60 @@ abstract class EvolizSaleOrder
             }
 
             $items[] = new Item($shipping);
+        }
+    }
+
+    /**
+     * @param object $order Woocommerce order
+     * @param array $items Array of Items
+     *
+     * @return void
+     */
+    private static function addFeesToItems(object $order, array &$items)
+    {
+        $orderId = (string) $order->get_order_number();
+
+        foreach ($order->get_items('fee') as $item) {
+            writeLog("[ Order : $orderId ] Add a fee line to the Sale Order...");
+
+            $priceTotal = $item->get_total() + $item->get_total_tax();
+            $newItem = [
+                'designation' => $item->get_name(),
+                'quantity' => $item->get_quantity(),
+                'unit_price_vat_exclude' => round($item->get_total(), 2),
+            ];
+
+            $hasTaxes = $item->get_total_tax() !== null && $item->get_total_tax() > 0;
+
+            if ($hasTaxes) {
+                $vat_rate = ($priceTotal - $item->get_total()) / $item->get_total() * 100;
+                $newItem['vat_rate'] = round($vat_rate, 2);
+            }
+
+            $items[] = new Item($newItem);
+        }
+    }
+
+    /**
+     * @param object $order Woocommerce order
+     * @param array $items Array of Items
+     *
+     * @return void
+     */
+    private static function addGlobalRebateToItems(object $order, array &$items)
+    {
+        if ($order->get_discount_total() !== null && $order->get_discount_total() > 0) {
+            $orderId = (string) $order->get_order_number();
+            $unitPrice = -round(($order->get_discount_total() + $order->get_discount_tax()), 2);
+            writeLog("[ Order : $orderId ] Add a global rebate line ($unitPrice) to the Sale Order...");
+
+            $rebate = [
+                'designation' => 'Remise globale',
+                'quantity' => 1,
+                'unit_price_vat_exclude' => $unitPrice,
+            ];
+
+            $items[] = new Item($rebate);
         }
     }
 }
