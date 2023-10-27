@@ -8,6 +8,7 @@ function writeLog(string $message, string $code = null, string $level = EVOLIZ_L
 {
     $date = new DateTime();
     $date = $date->format("d/m/Y H:i:s");
+    $version = getCurrentVersion();
 
     $message = str_replace('.<br>', ', ', $message);
     $message = strip_tags($message);
@@ -16,7 +17,7 @@ function writeLog(string $message, string $code = null, string $level = EVOLIZ_L
         $level = $level . " ($code)";
     }
 
-    error_log("[ $date ] $level : $message\n", 3, plugin_dir_path(__FILE__) . '../evoliz.log');
+    error_log("[ $date ] [ v$version ] $level : $message\n", 3, plugin_dir_path(__FILE__) . '../evoliz.log');
 }
 
 function clearLog()
