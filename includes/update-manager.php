@@ -37,6 +37,12 @@ function checkUpdate()
     $actualVersion === $latestRelease->version ?: sendUpdateNotification($latestRelease);
 }
 
+function getCurrentVersion()
+{
+    $versionManager = manageVersion(false);
+    return $versionManager->version;
+}
+
 function sendUpdateNotification($latestRelease)
 {
     writeLog("[ Update Manager ] A new version of the Evoliz module is available ($latestRelease->version).\n");

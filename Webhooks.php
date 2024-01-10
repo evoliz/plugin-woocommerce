@@ -85,7 +85,7 @@ abstract class Webhooks
                     }
                     EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
             }
-        } catch (ConfigException $exception) {
+        } catch (Exception $exception) {
             writeLog("[ Order : $orderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
         }
     }

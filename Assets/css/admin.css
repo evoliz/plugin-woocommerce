@@ -3,3 +3,19 @@
     padding: 20px;
     background: #FFF;
 }
+
+.evoliz-required-info {
+    padding: 1px 12px;
+    margin: 5px 0 15px 0;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-left: 4px solid #d63638;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+.evoliz-required-info ul {
+    padding-left: 15px;
+    list-style-type: square;
+}
+.evoliz-required-info ul li {
+    margin-bottom: 3px;
+}

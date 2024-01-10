@@ -31,48 +31,44 @@ abstract class EvolizSaleOrder
 
         if (empty($matchingSaleOrders->data)) {
             writeLog("[ Order : $orderId ] Creating the Sale Order from WooCommerce to Evoliz...");
-            try {
-                $clientId = EvolizClient::findOrCreate($config, $order);
+            $clientId = EvolizClient::findOrCreate($config, $order);
 
-                if (!$clientId) {
-                    throw new Exception('Error finding or creating client.');
-                }
-
-                $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
-
-                $items = self::extractItemsFromOrder($order);
-
-                $saleOrderRepository = new SaleOrderRepository($config);
-
-                $date = new DateTime($order->get_date_created()->date);
-                $orderObject = 'Commande n°' . $order->get_order_number() . ' sur ' . get_bloginfo();
-
-                $newSaleOrder = [
-                    'external_document_number' => (string) $order->get_order_number(),
-                    'documentdate' => $date->format('Y-m-d'),
-                    'clientid' => $clientId,
-                    'contactid' => $contactId,
-                    'object' => $orderObject,
-                    'term' => [
-                        'paytermid' => 1,
-                    ],
-                    'items' => $items,
-                    'comment' => $order->get_customer_note(),
-                ];
-
-                if (EvolizClient::isProfessional($config, $clientId)) {
-                    $newSaleOrder['term']['recovery_indemnity'] = true;
-                }
-
-                $saleOrder = $saleOrderRepository->create(new SaleOrder($newSaleOrder));
-
-                writeLog("[ Order : $orderId ] The Sale Order has been successfully created ($saleOrder->orderid).\n");
-
-                $order->update_meta_data('EVOLIZ_CORDERID', $saleOrder->orderid);
-                $order->save();
-            } catch (Exception $exception) {
-                writeLog("[ Order : $orderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
+            if (!$clientId) {
+                throw new Exception('Error finding or creating client.');
             }
+
+            $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
+
+            $items = self::extractItemsFromOrder($order);
+
+            $saleOrderRepository = new SaleOrderRepository($config);
+
+            $date = new DateTime($order->get_date_created()->date);
+            $orderObject = 'Commande n°' . $order->get_order_number() . ' sur ' . get_bloginfo();
+
+            $newSaleOrder = [
+                'external_document_number' => (string) $order->get_order_number(),
+                'documentdate' => $date->format('Y-m-d'),
+                'clientid' => $clientId,
+                'contactid' => $contactId,
+                'object' => $orderObject,
+                'term' => [
+                    'paytermid' => 1,
+                ],
+                'items' => $items,
+                'comment' => $order->get_customer_note(),
+            ];
+
+            if (EvolizClient::isProfessional($config, $clientId)) {
+                $newSaleOrder['term']['recovery_indemnity'] = true;
+            }
+
+            $saleOrder = $saleOrderRepository->create(new SaleOrder($newSaleOrder));
+
+            writeLog("[ Order : $orderId ] The Sale Order has been successfully created ($saleOrder->orderid).\n");
+
+            $order->update_meta_data('EVOLIZ_CORDERID', $saleOrder->orderid);
+            $order->save();
         }
     }
 
@@ -89,26 +85,22 @@ abstract class EvolizSaleOrder
         $wcOrderId = $wcOrder->get_order_number();
         $evolizOrderId = $wcOrder->get_meta('EVOLIZ_CORDERID', true);
 
-        try {
-            if (empty($evolizOrderId)) {
-                throw new Exception('Evoliz order id is missing in meta.');
-            }
+        if (empty($evolizOrderId)) {
+            throw new Exception('Evoliz order id is missing in meta.');
+        }
 
-            $saleOrderRepository = new SaleOrderRepository($config);
-            $evolizOrder = $saleOrderRepository->detail($evolizOrderId);
+        $saleOrderRepository = new SaleOrderRepository($config);
+        $evolizOrder = $saleOrderRepository->detail($evolizOrderId);
 
-            if ($evolizOrder->status !== 'invoice') {
-                writeLog("[ Order : $wcOrderId ] Payment received. Creation of the Invoice...");
-                $invoice = $saleOrderRepository->invoice($evolizOrder->orderid, $save);
-                $invoiceId = $invoice->invoiceid;
-                writeLog("[ Order : $wcOrderId ] The Sale Order has been successfully invoiced ($invoiceId).");
+        if ($evolizOrder->status !== 'invoice') {
+            writeLog("[ Order : $wcOrderId ] Payment received. Creation of the Invoice...");
+            $invoice = $saleOrderRepository->invoice($evolizOrder->orderid, $save);
+            $invoiceId = $invoice->invoiceid;
+            writeLog("[ Order : $wcOrderId ] The Sale Order has been successfully invoiced ($invoiceId).");
 
-                writeLog("[ Order : $wcOrderId ] Creation of the Payment...");
-                $payment = EvolizInvoice::pay($config, $invoiceId, EvolizPayment::getPayTypeId($wcOrder->get_payment_method()));
-                writeLog("[ Order : $wcOrderId ] The Payment has been successfully created ($payment->paymentid).\n");
-            }
-        } catch (Exception $exception) {
-            writeLog("[ Order : $wcOrderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
+            writeLog("[ Order : $wcOrderId ] Creation of the Payment...");
+            $payment = EvolizInvoice::pay($config, $invoiceId, EvolizPayment::getPayTypeId($wcOrder->get_payment_method()));
+            writeLog("[ Order : $wcOrderId ] The Payment has been successfully created ($payment->paymentid).\n");
         }
     }
 
