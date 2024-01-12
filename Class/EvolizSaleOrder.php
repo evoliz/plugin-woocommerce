@@ -44,13 +44,14 @@ abstract class EvolizSaleOrder
             $saleOrderRepository = new SaleOrderRepository($config);
 
             $date = new DateTime($order->get_date_created()->date);
+            $orderObject = 'Commande n°' . $order->get_order_number() . ' sur ' . get_bloginfo();
 
             $newSaleOrder = [
                 'external_document_number' => (string) $order->get_order_number(),
                 'documentdate' => $date->format('Y-m-d'),
                 'clientid' => $clientId,
                 'contactid' => $contactId,
-                'object' => "Sale Order created from Woocommerce",
+                'object' => $orderObject,
                 'term' => [
                     'paytermid' => 1,
                 ],
