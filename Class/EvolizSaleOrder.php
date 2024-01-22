@@ -65,7 +65,7 @@ abstract class EvolizSaleOrder
 
             $saleOrder = $saleOrderRepository->create(new SaleOrder($newSaleOrder));
 
-            writeLog("[ Order : $orderId ] The Sale Order has been successfully created ($saleOrder->orderid).\n");
+            writeLog("[ Order : $orderId ] The Sale Order has been successfully created ($saleOrder->orderid).\n\n");
 
             $order->update_meta_data('EVOLIZ_CORDERID', $saleOrder->orderid);
             $order->save();
@@ -135,13 +135,21 @@ abstract class EvolizSaleOrder
                 $newItem['rebate'] = round($item->get_subtotal() - $item->get_total(), 2);
             }
 
+            writeLog('Original item data: ' . json_encode($item->get_data()), null, EVOLIZ_LOG_DEBUG);
+
             $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
             if ($hasTaxes) {
                 $tax = new WC_Tax();
                 $taxes = $tax->get_rates($product->get_tax_class());
                 $rates = array_shift($taxes);
                 $newItem['vat_rate'] = $rates['rate'];
+
+                writeLog('VAT data: ' . json_encode($rates), null, EVOLIZ_LOG_DEBUG);
+            } else {
+                writeLog('No VAT data for ' . $productName, null, EVOLIZ_LOG_DEBUG);
             }
+
+            writeLog('Created item data: ' . json_encode($newItem), null, EVOLIZ_LOG_DEBUG);
 
             $items[] = new Item($newItem);
         }
