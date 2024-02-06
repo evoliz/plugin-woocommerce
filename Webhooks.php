@@ -1,7 +1,6 @@
 <?php
 
 use Evoliz\Client\Config;
-use Evoliz\Client\Exception\ConfigException;
 use Evoliz\Client\Exception\ResourceException;
 
 require_once 'Class/EvolizSaleOrder.php';
@@ -85,6 +84,8 @@ abstract class Webhooks
                     }
                     EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
             }
+
+            EvolizSettings::updateWooCommerceAppOnEvoliz(self::$config);
         } catch (Exception $exception) {
             writeLog("[ Order : $orderId ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
         }
