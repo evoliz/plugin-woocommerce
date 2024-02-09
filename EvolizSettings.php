@@ -268,19 +268,9 @@ abstract class EvolizSettings
         exit;
     }
 
-    public static function updateWooCommerceAppOnEvoliz(?Config $config = null)
+    public static function updateWooCommerceAppOnEvoliz(Config $config)
     {
         try {
-            if (!$config) {
-                $options = get_option('evoliz_settings_credentials');
-                $config = new Config(
-                    (int) $options['wc_evz_company_id'],
-                    $options['wc_evz_public_key'],
-                    $options['wc_evz_secret_key']
-                );
-                $config->authenticate();
-            }
-
             $response = HttpClient::getInstance()
                 ->post('api/v1/woocommerce/connect', [
                     'body' => json_encode([
@@ -291,7 +281,7 @@ abstract class EvolizSettings
                     ]),
                 ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if ($response->getStatusCode() !== 204) {
                 $content = json_decode($response->getBody()->getContents());
                 throw new Exception('Cannot connect WooCommerce to Evoliz: ' . $content->message);
             }
