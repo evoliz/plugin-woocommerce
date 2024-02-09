@@ -1,6 +1,7 @@
 <?php
 
 use Evoliz\Client\Config;
+use Evoliz\Client\HttpClient;
 
 abstract class EvolizSettings
 {
@@ -149,6 +150,9 @@ abstract class EvolizSettings
         if ($has_errors) {
             return null;
         }
+
+        self::updateWooCommerceAppOnEvoliz($config);
+
         return $data;
     }
 
@@ -262,5 +266,27 @@ abstract class EvolizSettings
         header('Content-Length: ' . filesize(self::$logFile));
         readfile(self::$logFile);
         exit;
+    }
+
+    public static function updateWooCommerceAppOnEvoliz(Config $config)
+    {
+        try {
+            $response = HttpClient::getInstance()
+                ->post('api/v1/woocommerce/connect', [
+                    'body' => json_encode([
+                        'php' => phpversion(),
+                        'wordpress' => get_bloginfo('version'),
+                        'woocommerce' => WC()->version,
+                        'evoliz_woocommmerce' => getCurrentVersion(),
+                    ]),
+                ]);
+
+            if ($response->getStatusCode() !== 204) {
+                $content = json_decode($response->getBody()->getContents());
+                throw new Exception('Cannot connect WooCommerce to Evoliz: ' . $content->message);
+            }
+        } catch (Exception $e) {
+            writeLog($e->getMessage() . "\n", $e->getCode(), EVOLIZ_LOG_ERROR);
+        }
     }
 }
