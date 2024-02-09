@@ -1,5 +1,6 @@
 <?php
 
+const EVOLIZ_LOG_DEBUG = "DEBUG";
 const EVOLIZ_LOG_INFO = "INFO";
 const EVOLIZ_LOG_WARNING = "WARNING";
 const EVOLIZ_LOG_ERROR = "ERROR";
