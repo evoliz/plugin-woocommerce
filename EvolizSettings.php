@@ -111,6 +111,11 @@ abstract class EvolizSettings
                 'sanitize_callback' => __CLASS__ . '::validateSettings'
             ]);
 
+            add_settings_section("configuration_section", "Configuration", __CLASS__ . '::displayConfigurationHeader', "evoliz_settings");
+            add_settings_field("wc_evz_enable_invoicing", "Facturer les commandes", __CLASS__ . '::displayEnableInvoicing', "evoliz_settings", "configuration_section");
+
+            register_setting("evoliz_settings", "wc_evz_enable_invoicing");
+
             add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
             add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
             add_settings_field("wc_evz_eu_vat_number", "Champ du numéro de TVA intracommunautaire", __CLASS__ . '::displayVatNumberFields', "evoliz_settings", "eu_vat_section");
@@ -197,6 +202,20 @@ abstract class EvolizSettings
         <input style="width: 385px;" type="text" name="evoliz_settings_credentials[<?php echo esc_attr($args['label_for']); ?>]" id="<?php echo esc_attr($args['label_for']); ?>"
                value="<?= isset($options[$args['label_for']]) ? esc_attr($options[$args['label_for']]) : '' ?>" />
         <?php
+    }
+
+    public static function displayConfigurationHeader()
+    {
+        echo "<p>Cochez l'option suivante pour que les commandes soient automatiquement transformées en factures.</p>";
+    }
+
+    public static function displayEnableInvoicing()
+    {
+        echo '<label for="wc_evz_enable_invoicing">
+            <input name="wc_evz_enable_invoicing" id="wc_evz_enable_invoicing" type="checkbox"' .
+            (esc_attr(get_option('wc_evz_enable_invoicing', 'on')) == "on" ? ' checked="checked"' : '') . '/>' .
+            '<span class="slider round"></span>
+        </label>';
     }
 
     public static function displayEuVatHeader()

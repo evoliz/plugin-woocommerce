@@ -74,7 +74,7 @@ abstract class Webhooks
                         EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
                     }
 
-                    if ($wcOrder->get_payment_method() !== 'cod') {
+                    if ($wcOrder->get_payment_method() !== 'cod' && get_option('wc_evz_enable_invoicing', 'on') === 'on') {
                         EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
                     }
                     break;
@@ -82,7 +82,10 @@ abstract class Webhooks
                     if (!in_array($previousStatus, ['on-hold', 'processing'])) {
                         EvolizSaleOrder::findOrCreate(self::$config, $wcOrder);
                     }
-                    EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
+
+                    if (get_option('wc_evz_enable_invoicing', 'on') === 'on') {
+                        EvolizSaleOrder::invoiceAndPay(self::$config, $wcOrder);
+                    }
             }
 
             EvolizSettings::updateWooCommerceAppOnEvoliz(self::$config);
