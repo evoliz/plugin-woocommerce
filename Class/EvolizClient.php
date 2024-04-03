@@ -4,16 +4,14 @@ use Evoliz\Client\Config;
 use Evoliz\Client\Exception\ResourceException;
 use Evoliz\Client\Model\Clients\Client\Client;
 use Evoliz\Client\Repository\Clients\ClientRepository;
+use Evoliz\Client\Response\Clients\ClientResponse;
 
 abstract class EvolizClient
 {
     /**
-     * @param Config $config Configuration for API usage
-     * @param object $order Woocommerce order
-     * @return int|null Client identifier
      * @throws ResourceException|Exception
      */
-    public static function findOrCreate(Config $config, object $order): ?int
+    public static function findOrCreate(Config $config, object $order): ?ClientResponse
     {
         $company = $order->get_billing_company();
         $clientName = isset($company) && $company !== '' ? $company : $order->get_billing_last_name();
@@ -79,18 +77,6 @@ abstract class EvolizClient
                     $clientData['address']['addr2'] = $order->get_billing_address_2();
                 }
 
-                if ($order->get_shipping_postcode() !== null && $order->get_shipping_postcode() !== '') {
-                    $clientData['delivery_address'] = array_filter([
-                        "postcode" => $order->get_shipping_postcode(),
-                        'town' => $order->get_shipping_city(),
-                        'iso2' => $order->get_shipping_country(),
-                        'addr' => $order->get_shipping_address_1(),
-                        'addr2' => $order->get_shipping_address_2()
-                    ], function ($value) {
-                        return isset($value) && $value !== '';
-                    });
-                }
-
                 $newClient = $clientRepository->create(new Client($clientData));
                 $clientId = $newClient->clientid;
                 writeLog("[ Client : $clientName ] The Client has been successfully created ($clientId).");
@@ -100,7 +86,7 @@ abstract class EvolizClient
             }
         }
 
-        return $clientId ?? null;
+        return $newClient ?? null;
     }
 
     /**

@@ -7,6 +7,7 @@ use Evoliz\Client\Model\Sales\SaleOrder;
 use Evoliz\Client\Repository\Sales\SaleOrderRepository;
 
 require_once 'EvolizClient.php';
+require_once 'EvolizClientDeliveryAddress.php';
 require_once 'EvolizContactClient.php';
 require_once 'EvolizInvoice.php';
 require_once 'EvolizPayment.php';
@@ -31,11 +32,16 @@ abstract class EvolizSaleOrder
 
         if (empty($matchingSaleOrders->data)) {
             writeLog("[ Order : $orderId ] Creating the Sale Order from WooCommerce to Evoliz...");
-            $clientId = EvolizClient::findOrCreate($config, $order);
 
-            if (!$clientId) {
+            $client = EvolizClient::findOrCreate($config, $order);
+
+            if (!$client) {
                 throw new Exception('Error finding or creating client.');
+            } else {
+                $clientId = $client->clientid;
             }
+
+            $clientAddressId = EvolizClientDeliveryAddress::findOrCreate($config, $order, $client);
 
             $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
 
@@ -58,6 +64,10 @@ abstract class EvolizSaleOrder
                 'items' => $items,
                 'comment' => $order->get_customer_note(),
             ];
+
+            if ($clientAddressId) {
+                $newSaleOrder['delivery_addressid'] = $clientAddressId;
+            }
 
             if (EvolizClient::isProfessional($config, $clientId)) {
                 $newSaleOrder['term']['recovery_indemnity'] = true;
