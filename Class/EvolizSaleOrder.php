@@ -19,7 +19,7 @@ abstract class EvolizSaleOrder
      *
      * @throws ResourceException|Exception
      */
-    public static function findOrCreate(Config $config, object $order)
+    public static function findOrCreate(Config $config, object $order): void
     {
         clearLog();
 
@@ -80,7 +80,7 @@ abstract class EvolizSaleOrder
      * @return void
      * @throws ResourceException|Exception
      */
-    public static function invoiceAndPay(Config $config, object $wcOrder, bool $save = true)
+    public static function invoiceAndPay(Config $config, object $wcOrder, bool $save = true): void
     {
         $wcOrderId = $wcOrder->get_order_number();
         $evolizOrderId = $wcOrder->get_meta('EVOLIZ_CORDERID', true);
@@ -111,9 +111,11 @@ abstract class EvolizSaleOrder
      */
     private static function extractItemsFromOrder(object $order): array
     {
+        $orderId = (string) $order->get_order_number();
+        $taxRates = self::getOrderTaxRates($order);
         $items = [];
 
-        $orderId = (string) $order->get_order_number();
+        writeLog("[ Order : $orderId ] Retrieving VAT data: " . json_encode($taxRates));
         writeLog("[ Order : $orderId ] Retrieving related items lines...");
 
         foreach ($order->get_items() as $item) {
@@ -138,13 +140,12 @@ abstract class EvolizSaleOrder
             writeLog('Original item data: ' . json_encode($item->get_data()), null, EVOLIZ_LOG_DEBUG);
 
             $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
-            if ($hasTaxes) {
-                $tax = new WC_Tax();
-                $taxes = $tax->get_rates($product->get_tax_class());
-                $rates = array_shift($taxes);
-                $newItem['vat_rate'] = $rates['rate'];
 
-                writeLog('VAT data: ' . json_encode($rates), null, EVOLIZ_LOG_DEBUG);
+            if ($hasTaxes) {
+                $percent = self::getTaxPercentageForOrderItem($item, $taxRates);
+                $newItem['vat_rate'] = $percent;
+
+                writeLog('VAT percent: ' . $percent, null, EVOLIZ_LOG_DEBUG);
             } else {
                 writeLog('No VAT data for ' . $productName, null, EVOLIZ_LOG_DEBUG);
             }
@@ -166,7 +167,7 @@ abstract class EvolizSaleOrder
      *
      * @return void
      */
-    private static function addShippingCostsToItems(object $order, array &$items)
+    private static function addShippingCostsToItems(object $order, array &$items): void
     {
         if ($order->get_shipping_total() !== null && $order->get_shipping_total() > 0) {
             $orderId = (string) $order->get_order_number();
@@ -180,9 +181,9 @@ abstract class EvolizSaleOrder
             ];
 
             $shipping['vat_rate'] = null;
-            foreach( $order->get_items('tax') as $item_tax ){
+            foreach ($order->get_items('tax') as $item_tax) {
                 $tax_data = $item_tax->get_data();
-                if ($tax_data['shipping_tax_total'] ===  $order->get_shipping_tax()) {
+                if ($tax_data['shipping_tax_total'] === $order->get_shipping_tax()) {
                     $shipping['vat_rate'] =  $tax_data['rate_percent'];
                 }
             }
@@ -197,14 +198,14 @@ abstract class EvolizSaleOrder
      *
      * @return void
      */
-    private static function addFeesToItems(object $order, array &$items)
+    private static function addFeesToItems(object $order, array &$items): void
     {
         $orderId = (string) $order->get_order_number();
+        $taxRates = self::getOrderTaxRates($order);
 
         foreach ($order->get_items('fee') as $item) {
             writeLog("[ Order : $orderId ] Add a fee line to the Sale Order...");
 
-            $priceTotal = $item->get_total() + $item->get_total_tax();
             $newItem = [
                 'designation' => $item->get_name(),
                 'quantity' => $item->get_quantity(),
@@ -214,11 +215,39 @@ abstract class EvolizSaleOrder
             $hasTaxes = $item->get_total_tax() !== null && $item->get_total_tax() > 0;
 
             if ($hasTaxes) {
-                $vat_rate = ($priceTotal - $item->get_total()) / $item->get_total() * 100;
-                $newItem['vat_rate'] = round($vat_rate, 2);
+                $percent = self::getTaxPercentageForOrderItem($item, $taxRates);
+                $newItem['vat_rate'] = $percent;
+
+                writeLog('VAT percent: ' . $percent, null, EVOLIZ_LOG_DEBUG);
+            } else {
+                writeLog('No VAT data for fee line ' . $item->get_name(), null, EVOLIZ_LOG_DEBUG);
             }
 
             $items[] = new Item($newItem);
         }
+    }
+
+    /**
+     * See https://stackoverflow.com/a/78218963/1320311
+     * for more information on how to handle product taxes.
+     */
+    private static function getOrderTaxRates($order): array
+    {
+        $taxRates = [];
+
+        foreach ($order->get_items('tax') as $item) {
+            $taxRates[$item->get_rate_id()] = $item->get_rate_percent();
+        }
+
+        return $taxRates;
+    }
+
+    private static function getTaxPercentageForOrderItem($item, $taxRates)
+    {
+        // Always use "total" because for fees "subtotal" never exists
+        $item_taxes = $item->get_taxes();
+        $tax_rate_id = key(array_filter($item_taxes['total']));
+
+        return $taxRates[$tax_rate_id] ?? 0;
     }
 }
