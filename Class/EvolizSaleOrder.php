@@ -24,6 +24,8 @@ abstract class EvolizSaleOrder
     {
         clearLog();
 
+        $prices_include_tax = get_option('woocommerce_prices_include_tax') === 'yes';
+
         $saleOrderRepository = new SaleOrderRepository($config);
 
         $matchingSaleOrders = $saleOrderRepository->list(['search' => (string) $order->get_order_key()]);
@@ -45,7 +47,7 @@ abstract class EvolizSaleOrder
 
             $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
 
-            $items = self::extractItemsFromOrder($order);
+            $items = self::extractItemsFromOrder($order, $prices_include_tax);
 
             $saleOrderRepository = new SaleOrderRepository($config);
 
@@ -63,6 +65,7 @@ abstract class EvolizSaleOrder
                 ],
                 'items' => $items,
                 'comment' => $order->get_customer_note(),
+                'prices_include_vat' => $prices_include_tax,
             ];
 
             if ($clientAddressId) {
@@ -119,7 +122,7 @@ abstract class EvolizSaleOrder
      *
      * @return array Array of Items filled in with the order data
      */
-    private static function extractItemsFromOrder(object $order): array
+    private static function extractItemsFromOrder(object $order, bool $prices_include_tax = false): array
     {
         $orderId = (string) $order->get_order_number();
         $taxRates = self::getOrderTaxRates($order);
@@ -135,12 +138,16 @@ abstract class EvolizSaleOrder
 
             writeLog("[ Order : $orderId ] Adding product '$productName' (x$quantity) to the Sale Order...");
 
-            $unit_vat_exclude = $item->get_subtotal() / $item->get_quantity();
+            if ($prices_include_tax) {
+                $unit_price = ($item->get_subtotal() + $item->get_subtotal_tax()) / $item->get_quantity();
+            } else {
+                $unit_price = $item->get_subtotal() / $item->get_quantity();
+            }
 
             $newItem = [
                 'designation' => $productName,
                 'quantity' => $quantity,
-                'unit_price_vat_exclude' => round($unit_vat_exclude, 2),
+                'unit_price' => round($unit_price, 2),
             ];
 
             if ($item->get_subtotal() != $item->get_total()) {
