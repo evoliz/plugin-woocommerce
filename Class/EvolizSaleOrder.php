@@ -172,8 +172,8 @@ abstract class EvolizSaleOrder
             $items[] = new Item($newItem);
         }
 
-        self::addFeesToItems($order, $items);
-        self::addShippingCostsToItems($order, $items);
+        self::addFeesToItems($order, $items, $prices_include_tax);
+        self::addShippingCostsToItems($order, $items, $prices_include_tax);
 
         return $items;
     }
@@ -184,23 +184,31 @@ abstract class EvolizSaleOrder
      *
      * @return void
      */
-    private static function addShippingCostsToItems(object $order, array &$items): void
+    private static function addShippingCostsToItems(object $order, array &$items, bool $prices_include_tax = false): void
     {
         if ($order->get_shipping_total() !== null && $order->get_shipping_total() > 0) {
             $orderId = (string) $order->get_order_number();
-            $unitPrice = round($order->get_shipping_total(), 2);
+            $shipping_total = $order->get_shipping_total();
+            $shipping_tax = $order->get_shipping_tax();
+
+            if ($prices_include_tax) {
+                $unitPrice = round($shipping_total + $shipping_tax, 2);
+            } else {
+                $unitPrice = round($shipping_total, 2);
+            }
+
             writeLog("[ Order : $orderId ] Add a shipping costs line ($unitPrice) to the Sale Order...");
 
             $shipping = [
                 'designation' => 'Frais de livraison',
                 'quantity' => 1,
-                'unit_price_vat_exclude' => $unitPrice,
+                'unit_price' => $unitPrice,
             ];
 
             $shipping['vat_rate'] = null;
             foreach ($order->get_items('tax') as $item_tax) {
                 $tax_data = $item_tax->get_data();
-                if ($tax_data['shipping_tax_total'] === $order->get_shipping_tax()) {
+                if ($tax_data['shipping_tax_total'] === $shipping_tax) {
                     $shipping['vat_rate'] =  $tax_data['rate_percent'];
                 }
             }
@@ -215,7 +223,7 @@ abstract class EvolizSaleOrder
      *
      * @return void
      */
-    private static function addFeesToItems(object $order, array &$items): void
+    private static function addFeesToItems(object $order, array &$items, bool $prices_include_tax = false): void
     {
         $orderId = (string) $order->get_order_number();
         $taxRates = self::getOrderTaxRates($order);
@@ -223,13 +231,22 @@ abstract class EvolizSaleOrder
         foreach ($order->get_items('fee') as $item) {
             writeLog("[ Order : $orderId ] Add a fee line to the Sale Order...");
 
+            $total = $item->get_total();
+            $tax = $item->get_total_tax();
+
+            if ($prices_include_tax) {
+                $unitPrice = round($total + $tax, 2);
+            } else {
+                $unitPrice = round($total, 2);
+            }
+
             $newItem = [
                 'designation' => $item->get_name(),
                 'quantity' => $item->get_quantity(),
-                'unit_price_vat_exclude' => round($item->get_total(), 2),
+                'unit_price' => $unitPrice,
             ];
 
-            $hasTaxes = $item->get_total_tax() !== null && $item->get_total_tax() > 0;
+            $hasTaxes = $tax > 0;
 
             if ($hasTaxes) {
                 $percent = self::getTaxPercentageForOrderItem($item, $taxRates);
