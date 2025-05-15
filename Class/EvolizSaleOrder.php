@@ -169,7 +169,7 @@ abstract class EvolizSaleOrder
 
             writeLog('Created item data: ' . json_encode($newItem), null, EVOLIZ_LOG_DEBUG);
 
-            $items[] = new Item($newItem);
+            $items[] = new Item($newItem, $prices_include_tax);
         }
 
         self::addFeesToItems($order, $items, $prices_include_tax);
@@ -213,7 +213,7 @@ abstract class EvolizSaleOrder
                 }
             }
 
-            $items[] = new Item($shipping);
+            $items[] = new Item($shipping, $prices_include_tax);
         }
     }
 
@@ -257,7 +257,7 @@ abstract class EvolizSaleOrder
                 writeLog('No VAT data for fee line ' . $item->get_name(), null, EVOLIZ_LOG_DEBUG);
             }
 
-            $items[] = new Item($newItem);
+            $items[] = new Item($newItem, $prices_include_tax);
         }
     }
 
