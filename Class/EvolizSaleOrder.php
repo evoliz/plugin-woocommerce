@@ -24,6 +24,8 @@ abstract class EvolizSaleOrder
     {
         clearLog();
 
+        $prices_include_tax = get_option('woocommerce_prices_include_tax') === 'yes';
+
         $saleOrderRepository = new SaleOrderRepository($config);
 
         $matchingSaleOrders = $saleOrderRepository->list(['search' => (string) $order->get_order_key()]);
@@ -45,7 +47,7 @@ abstract class EvolizSaleOrder
 
             $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
 
-            $items = self::extractItemsFromOrder($order);
+            $items = self::extractItemsFromOrder($order, $prices_include_tax);
 
             $saleOrderRepository = new SaleOrderRepository($config);
 
@@ -63,6 +65,7 @@ abstract class EvolizSaleOrder
                 ],
                 'items' => $items,
                 'comment' => $order->get_customer_note(),
+                'prices_include_vat' => $prices_include_tax,
             ];
 
             if ($clientAddressId) {
@@ -119,7 +122,7 @@ abstract class EvolizSaleOrder
      *
      * @return array Array of Items filled in with the order data
      */
-    private static function extractItemsFromOrder(object $order): array
+    private static function extractItemsFromOrder(object $order, bool $prices_include_tax = false): array
     {
         $orderId = (string) $order->get_order_number();
         $taxRates = self::getOrderTaxRates($order);
@@ -135,12 +138,16 @@ abstract class EvolizSaleOrder
 
             writeLog("[ Order : $orderId ] Adding product '$productName' (x$quantity) to the Sale Order...");
 
-            $unit_vat_exclude = $item->get_subtotal() / $item->get_quantity();
+            if ($prices_include_tax) {
+                $unit_price = ($item->get_subtotal() + $item->get_subtotal_tax()) / $item->get_quantity();
+            } else {
+                $unit_price = $item->get_subtotal() / $item->get_quantity();
+            }
 
             $newItem = [
                 'designation' => $productName,
                 'quantity' => $quantity,
-                'unit_price_vat_exclude' => round($unit_vat_exclude, 2),
+                'unit_price' => round($unit_price, 2),
             ];
 
             if ($item->get_subtotal() != $item->get_total()) {
@@ -162,11 +169,11 @@ abstract class EvolizSaleOrder
 
             writeLog('Created item data: ' . json_encode($newItem), null, EVOLIZ_LOG_DEBUG);
 
-            $items[] = new Item($newItem);
+            $items[] = new Item($newItem, $prices_include_tax);
         }
 
-        self::addFeesToItems($order, $items);
-        self::addShippingCostsToItems($order, $items);
+        self::addFeesToItems($order, $items, $prices_include_tax);
+        self::addShippingCostsToItems($order, $items, $prices_include_tax);
 
         return $items;
     }
@@ -177,28 +184,36 @@ abstract class EvolizSaleOrder
      *
      * @return void
      */
-    private static function addShippingCostsToItems(object $order, array &$items): void
+    private static function addShippingCostsToItems(object $order, array &$items, bool $prices_include_tax = false): void
     {
         if ($order->get_shipping_total() !== null && $order->get_shipping_total() > 0) {
             $orderId = (string) $order->get_order_number();
-            $unitPrice = round($order->get_shipping_total(), 2);
+            $shipping_total = $order->get_shipping_total();
+            $shipping_tax = $order->get_shipping_tax();
+
+            if ($prices_include_tax) {
+                $unitPrice = round($shipping_total + $shipping_tax, 2);
+            } else {
+                $unitPrice = round($shipping_total, 2);
+            }
+
             writeLog("[ Order : $orderId ] Add a shipping costs line ($unitPrice) to the Sale Order...");
 
             $shipping = [
                 'designation' => 'Frais de livraison',
                 'quantity' => 1,
-                'unit_price_vat_exclude' => $unitPrice,
+                'unit_price' => $unitPrice,
             ];
 
             $shipping['vat_rate'] = null;
             foreach ($order->get_items('tax') as $item_tax) {
                 $tax_data = $item_tax->get_data();
-                if ($tax_data['shipping_tax_total'] === $order->get_shipping_tax()) {
+                if ($tax_data['shipping_tax_total'] === $shipping_tax) {
                     $shipping['vat_rate'] =  $tax_data['rate_percent'];
                 }
             }
 
-            $items[] = new Item($shipping);
+            $items[] = new Item($shipping, $prices_include_tax);
         }
     }
 
@@ -208,7 +223,7 @@ abstract class EvolizSaleOrder
      *
      * @return void
      */
-    private static function addFeesToItems(object $order, array &$items): void
+    private static function addFeesToItems(object $order, array &$items, bool $prices_include_tax = false): void
     {
         $orderId = (string) $order->get_order_number();
         $taxRates = self::getOrderTaxRates($order);
@@ -216,13 +231,22 @@ abstract class EvolizSaleOrder
         foreach ($order->get_items('fee') as $item) {
             writeLog("[ Order : $orderId ] Add a fee line to the Sale Order...");
 
+            $total = $item->get_total();
+            $tax = $item->get_total_tax();
+
+            if ($prices_include_tax) {
+                $unitPrice = round($total + $tax, 2);
+            } else {
+                $unitPrice = round($total, 2);
+            }
+
             $newItem = [
                 'designation' => $item->get_name(),
                 'quantity' => $item->get_quantity(),
-                'unit_price_vat_exclude' => round($item->get_total(), 2),
+                'unit_price' => $unitPrice,
             ];
 
-            $hasTaxes = $item->get_total_tax() !== null && $item->get_total_tax() > 0;
+            $hasTaxes = $tax > 0;
 
             if ($hasTaxes) {
                 $percent = self::getTaxPercentageForOrderItem($item, $taxRates);
@@ -233,7 +257,7 @@ abstract class EvolizSaleOrder
                 writeLog('No VAT data for fee line ' . $item->get_name(), null, EVOLIZ_LOG_DEBUG);
             }
 
-            $items[] = new Item($newItem);
+            $items[] = new Item($newItem, $prices_include_tax);
         }
     }
 
