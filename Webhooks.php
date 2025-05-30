@@ -88,7 +88,9 @@ abstract class Webhooks
                     }
             }
 
-            EvolizSettings::updateWooCommerceAppOnEvoliz(self::$config);
+            if (in_array($newStatus, ['on-hold', 'processing', 'completed'])) {
+                EvolizSettings::updateWooCommerceAppOnEvoliz(self::$config);
+            }
         } catch (Exception $exception) {
             writeLog("[ Order : $orderId ] " . $exception->getMessage() . "\n\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
         }
