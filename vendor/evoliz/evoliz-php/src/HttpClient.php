@@ -6,7 +6,7 @@ use GuzzleHttp\Client;
 
 class HttpClient extends Client
 {
-    const PRODUCTION_URI = "https://ix6qp0-ip-193-222-188-53.tunnelmole.net";
+    const PRODUCTION_URI = "https://www.evoliz.io/";
     const STAGING_URI = "https://www.api.evoliz.net/";
 
     private static $baseUri = self::PRODUCTION_URI;

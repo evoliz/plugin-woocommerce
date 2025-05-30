@@ -3,7 +3,7 @@
         'name' => 'evoliz/plugin-woocommerce',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'b1fb2b6822fa2a481e46a1b458026b35d9c1e537',
+        'reference' => 'e1ef910ee8591811371f8b932ee733af5b27668f',
         'type' => 'plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'evoliz/plugin-woocommerce' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'b1fb2b6822fa2a481e46a1b458026b35d9c1e537',
+            'reference' => 'e1ef910ee8591811371f8b932ee733af5b27668f',
             'type' => 'plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
