@@ -2,7 +2,7 @@
 /*
 Plugin Name: Evoliz
 description: Evoliz integration for Woocommerce
-Version: 0.19.0
+Version: 0.20.0
 Author: Evoliz
 Author URI: https://www.evoliz.com/
 */
