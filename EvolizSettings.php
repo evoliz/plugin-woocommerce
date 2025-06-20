@@ -133,7 +133,7 @@ abstract class EvolizSettings
     }
 
     public static function validateSettings($data) {
-        $has_errors = false;
+        $error = null;
 
         try {
             if (!$data['wc_evz_public_key'] || !$data['wc_evz_secret_key'] || !$data['wc_evz_company_id']){
@@ -144,15 +144,17 @@ abstract class EvolizSettings
             $config->authenticate();
 
             if (!$config->hasValidCompanyId()) {
-                add_settings_error('wporg_messages', 'wporg_message', 'Le numéro de client est invalide', 'error');
-                $has_errors = true;
+                $error = 'Le numéro de client est invalide';
+            } elseif (!in_array('sale_order', $config->getScopes()) || !in_array('sale_invoice', $config->getScopes())) {
+                $error = '[TMP] Pas les droits';
             }
         } catch (Exception $e) {
-            add_settings_error('wporg_messages', 'wporg_message', $e->getMessage(), 'error');
-            $has_errors = true;
+            $error = $e->getMessage();
         }
 
-        if ($has_errors) {
+        if ($error) {
+            writeLog($error, null, EVOLIZ_LOG_ERROR);
+            add_settings_error('wporg_messages', 'wporg_message', $error, 'error');
             return null;
         }
 
