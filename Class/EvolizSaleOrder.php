@@ -6,6 +6,7 @@ use Evoliz\Client\Model\Item;
 use Evoliz\Client\Model\Sales\SaleOrder;
 use Evoliz\Client\Repository\Sales\SaleOrderRepository;
 
+require_once 'EvolizArticle.php';
 require_once 'EvolizClient.php';
 require_once 'EvolizClientDeliveryAddress.php';
 require_once 'EvolizContactClient.php';
@@ -47,7 +48,7 @@ abstract class EvolizSaleOrder
 
             $contactId = EvolizContactClient::findOrCreate($config, $order, $clientId);
 
-            $items = self::extractItemsFromOrder($order, $prices_include_tax);
+            $items = self::extractItemsFromOrder($order, $config, $prices_include_tax);
 
             $saleOrderRepository = new SaleOrderRepository($config);
 
@@ -121,11 +122,13 @@ abstract class EvolizSaleOrder
      * @param object $order Woocommerce order
      *
      * @return array Array of Items filled in with the order data
+     * @throws ResourceException
      */
-    private static function extractItemsFromOrder(object $order, bool $prices_include_tax = false): array
+    private static function extractItemsFromOrder(object $order, Config $config, bool $prices_include_tax = false): array
     {
         $orderId = (string) $order->get_order_number();
         $taxRates = self::getOrderTaxRates($order);
+        $syncArticles = get_option('wc_evz_enable_articles_synchronization') === 'on';
         $items = [];
 
         writeLog("[ Order : $orderId ] Retrieving VAT data: " . json_encode($taxRates));
@@ -165,6 +168,15 @@ abstract class EvolizSaleOrder
                 writeLog('VAT percent: ' . $percent, null, EVOLIZ_LOG_DEBUG);
             } else {
                 writeLog('No VAT data for ' . $productName, null, EVOLIZ_LOG_DEBUG);
+            }
+
+            if ($syncArticles) {
+                if ($product->get_sku()) {
+                    $article = EvolizArticle::findOrCreate($config, $product);
+                    $newItem['articleid'] = $article->articleid;
+                } else {
+                    writeLog("[ Order : $orderId ] The product $productName has no SKU, it cannot be created in Evoliz.", null, EVOLIZ_LOG_INFO);
+                }
             }
 
             writeLog('Created item data: ' . json_encode($newItem), null, EVOLIZ_LOG_DEBUG);
