@@ -48,9 +48,12 @@ abstract class EvolizClient
                         'iso2' => $order->get_billing_country() ?? 'FR',
                         'addr' => $order->get_billing_address_1() ?? ''
                     ],
-                    'phone' => $order->get_billing_phone() ?? '',
                     'comment' => 'Client created from Woocommerce'
                 ];
+
+                if (!empty($order->get_billing_phone())) {
+                    $clientData['phone'] = $order->get_billing_phone();
+                }
 
                 if (get_option('wc_evz_enable_vat_number') === 'on') {
                     if (get_option('wc_evz_eu_vat_number') !== null && get_option('wc_evz_eu_vat_number') !== '') {
@@ -83,6 +86,7 @@ abstract class EvolizClient
                 writeLog("[ Client : $clientName ] The Client has been successfully created ($client->clientid).");
 
             } catch (Exception $exception) {
+
                 writeLog("[ Client : $clientName ] " . $exception->getMessage() . "\n", $exception->getCode(), EVOLIZ_LOG_ERROR);
             }
         }
