@@ -146,7 +146,7 @@ abstract class EvolizSettings
             if (!$config->hasValidCompanyId()) {
                 $error = 'Le numéro de client est invalide';
             } elseif (!in_array('sale_order', $config->getScopes()) || !in_array('sale_invoice', $config->getScopes())) {
-                $error = '[TMP] Pas les droits';
+                $error = 'Les menus Ventes et Commandes doivent figurer dans le menu principal du compte Evoliz de l\'utilisateur.';
             }
         } catch (Exception $e) {
             $error = $e->getMessage();
