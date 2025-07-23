@@ -154,6 +154,10 @@ abstract class EvolizSaleOrder
                 $newItem['rebate'] = round($item->get_subtotal() - $item->get_total(), 2);
             }
 
+            if (!empty($product->get_sku())) {
+                $newItem['reference'] = $product->get_sku();
+            }
+
             writeLog('Original item data: ' . json_encode($item->get_data()), null, EVOLIZ_LOG_DEBUG);
 
             $hasTaxes = $item->get_subtotal_tax() !== null && $item->get_subtotal_tax() > 0;
