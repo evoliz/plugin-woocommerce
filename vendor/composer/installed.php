@@ -3,7 +3,7 @@
         'name' => 'evoliz/plugin-woocommerce',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'e1ef910ee8591811371f8b932ee733af5b27668f',
+        'reference' => '9f958dcd6c17a5d9a4513b9e5c77b972d06cf797',
         'type' => 'plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'evoliz/evoliz-php' => array(
-            'pretty_version' => 'v0.8.0',
-            'version' => '0.8.0.0',
-            'reference' => '94d7c54482e5260ce759587a250655b63f8599e3',
+            'pretty_version' => 'v0.9.0',
+            'version' => '0.9.0.0',
+            'reference' => '3547d8dc657aebfcd60ddb3b58b3d942191c276d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../evoliz/evoliz-php',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'evoliz/plugin-woocommerce' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'e1ef910ee8591811371f8b932ee733af5b27668f',
+            'reference' => '9f958dcd6c17a5d9a4513b9e5c77b972d06cf797',
             'type' => 'plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -110,9 +110,9 @@
             'dev_requirement' => false,
         ),
         'symfony/deprecation-contracts' => array(
-            'pretty_version' => 'v3.6.0',
-            'version' => '3.6.0.0',
-            'reference' => '63afe740e99a13ba87ec199bb07bbdee937a5b62',
+            'pretty_version' => 'v3.0.2',
+            'version' => '3.0.2.0',
+            'reference' => '26954b3d62a6c5fd0ea8a2a00c0353a14978d05c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/deprecation-contracts',
             'aliases' => array(),
