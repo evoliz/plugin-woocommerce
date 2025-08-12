@@ -2,17 +2,17 @@
     "packages": [
         {
             "name": "evoliz/evoliz-php",
-            "version": "v0.8.0",
-            "version_normalized": "0.8.0.0",
+            "version": "v0.9.0",
+            "version_normalized": "0.9.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/evoliz/evoliz-php.git",
-                "reference": "94d7c54482e5260ce759587a250655b63f8599e3"
+                "reference": "3547d8dc657aebfcd60ddb3b58b3d942191c276d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/evoliz/evoliz-php/zipball/94d7c54482e5260ce759587a250655b63f8599e3",
-                "reference": "94d7c54482e5260ce759587a250655b63f8599e3",
+                "url": "https://api.github.com/repos/evoliz/evoliz-php/zipball/3547d8dc657aebfcd60ddb3b58b3d942191c276d",
+                "reference": "3547d8dc657aebfcd60ddb3b58b3d942191c276d",
                 "shasum": ""
             },
             "require": {
@@ -27,7 +27,7 @@
                 "rector/rector": "^0.12",
                 "squizlabs/php_codesniffer": "^3.5"
             },
-            "time": "2025-05-30T14:23:50+00:00",
+            "time": "2025-08-12T14:33:51+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -54,7 +54,7 @@
             ],
             "support": {
                 "issues": "https://github.com/evoliz/evoliz-php/issues",
-                "source": "https://github.com/evoliz/evoliz-php/tree/v0.8.0"
+                "source": "https://github.com/evoliz/evoliz-php/tree/v0.9.0"
             },
             "install-path": "../evoliz/evoliz-php"
         },
@@ -610,23 +610,23 @@
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v3.6.0",
-            "version_normalized": "3.6.0.0",
+            "version": "v3.0.2",
+            "version_normalized": "3.0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "63afe740e99a13ba87ec199bb07bbdee937a5b62"
+                "reference": "26954b3d62a6c5fd0ea8a2a00c0353a14978d05c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/63afe740e99a13ba87ec199bb07bbdee937a5b62",
-                "reference": "63afe740e99a13ba87ec199bb07bbdee937a5b62",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/26954b3d62a6c5fd0ea8a2a00c0353a14978d05c",
+                "reference": "26954b3d62a6c5fd0ea8a2a00c0353a14978d05c",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1"
+                "php": ">=8.0.2"
             },
-            "time": "2024-09-25T14:21:43+00:00",
+            "time": "2022-01-02T09:55:41+00:00",
             "type": "library",
             "extra": {
                 "thanks": {
@@ -634,7 +634,7 @@
                     "name": "symfony/contracts"
                 },
                 "branch-alias": {
-                    "dev-main": "3.6-dev"
+                    "dev-main": "3.0-dev"
                 }
             },
             "installation-source": "dist",
@@ -660,7 +660,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.6.0"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.0.2"
             },
             "funding": [
                 {
