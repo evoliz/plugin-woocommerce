@@ -112,9 +112,12 @@ abstract class EvolizSettings
             ]);
 
             add_settings_section("configuration_section", "Configuration", __CLASS__ . '::displayConfigurationHeader', "evoliz_settings");
-            add_settings_field("wc_evz_enable_invoicing", "Facturer les commandes", __CLASS__ . '::displayEnableInvoicing', "evoliz_settings", "configuration_section");
 
+            add_settings_field("wc_evz_enable_invoicing", "Facturer les commandes", __CLASS__ . '::displayEnableInvoicing', "evoliz_settings", "configuration_section");
             register_setting("evoliz_settings", "wc_evz_enable_invoicing");
+
+            add_settings_field("wc_evz_enable_articles_synchronization", "Synchroniser les produits vers Evoliz", __CLASS__ . '::displayEnableArticlesSynchronization', "evoliz_settings", "configuration_section");
+            register_setting("evoliz_settings", "wc_evz_enable_articles_synchronization");
 
             add_settings_section("eu_vat_section", "Options de traitement de la TVA Intracommunautaire", __CLASS__ . '::displayEuVatHeader', "evoliz_settings");
             add_settings_field("wc_evz_enable_vat_number", "Traitement de la TVA intracommunautaire", __CLASS__ . '::displayEnableVatNumber', "evoliz_settings", "eu_vat_section");
@@ -218,6 +221,16 @@ abstract class EvolizSettings
             (esc_attr(get_option('wc_evz_enable_invoicing', 'on')) == "on" ? ' checked="checked"' : '') . '/>' .
             '<span class="slider round"></span>
         </label>';
+    }
+
+    public static function displayEnableArticlesSynchronization(): void
+    {
+        echo '<label for="wc_evz_enable_articles_synchronization">
+            <input name="wc_evz_enable_articles_synchronization" id="wc_evz_enable_articles_synchronization" type="checkbox"' .
+            (esc_attr(get_option('wc_evz_enable_articles_synchronization', 'off')) == "on" ? ' checked="checked"' : '') . '/>' .
+            '<span class="slider round"></span>
+        </label>';
+        echo '<p>En activant cette option, les produits WooCommerce seront automatiquement synchronisés vers Evoliz au moment de la création des commandes. La référence utilisée correspond au champ <strong>UGS</strong>.</p>';
     }
 
     public static function displayEuVatHeader()
