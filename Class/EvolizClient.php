@@ -21,7 +21,10 @@ abstract class EvolizClient
 
         $clientRepository = new ClientRepository($config);
 
-        $matchingClients = $clientRepository->list(['search' => $clientName]);
+        $matchingClients = $clientRepository->list([
+            'search' => $clientName,
+            'enabled' => true,
+        ]);
 
         if (!empty($matchingClients->data)) {
             foreach ($matchingClients->data as $matchingClient) {
