@@ -20,6 +20,38 @@
     "sort-packages": true
   },
   "require": {
-    "evoliz/evoliz-php": "^0.9.0"
+    "evoliz/evoliz-php": "^0.9.0",
+    "symfony/deprecation-contracts": "^2.5"
+  },
+  "scripts": {
+    "build": [
+      "@composer install --no-dev --prefer-dist --optimize-autoloader",
+      "@composer prefix-namespaces"
+    ],
+    "prefix-namespaces": [
+      "sh -c 'mkdir -p bin; test -f ./bin/strauss.phar || curl -o bin/strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/download/0.28.1/strauss.phar'",
+      "@php bin/strauss.phar",
+      "@composer dump-autoload"
+    ]
+  },
+  "extra": {
+    "strauss": {
+      "target_directory": "vendor-prefixed",
+      "namespace_prefix": "Evoliz\\WooCommerce\\Vendor\\",
+      "classmap_prefix": "Evoliz_WC_",
+      "constant_prefix": "EVOLIZ_WC_",
+      "exclude_from_prefix": {
+        "packages": [
+          "evoliz/evoliz-php"
+        ]
+      },
+      "exclude_from_copy": {
+        "file_patterns": [
+          "/^evoliz\\/evoliz-php\\/(tests|examples)\\//",
+          "/^evoliz\\/evoliz-php\\/phpunit\\.xml$/"
+        ]
+      },
+      "delete_vendor_packages": true
+    }
   }
 }
