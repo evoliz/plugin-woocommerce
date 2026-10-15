@@ -154,7 +154,13 @@ abstract class EvolizSaleOrder
             ];
 
             if ($item->get_subtotal() != $item->get_total()) {
-                $newItem['rebate'] = round($item->get_subtotal() - $item->get_total(), 2);
+                if ($prices_include_tax) {
+                    $rebate = ($item->get_subtotal() + $item->get_subtotal_tax()) - ($item->get_total() + $item->get_total_tax());
+                } else {
+                    $rebate = $item->get_subtotal() - $item->get_total();
+                }
+
+                $newItem['rebate'] = round($rebate, 2);
             }
 
             if (!empty($product->get_sku())) {
